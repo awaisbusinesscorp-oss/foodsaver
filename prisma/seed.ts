@@ -1,7 +1,18 @@
 import { PrismaClient, Role, FoodType, ListingStatus } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 import * as bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// For seeding, we need direct database connection (not Accelerate)
+const databaseUrl = process.env.DATABASE_URL || process.env.fs_DATABASE_URL || process.env.fs_POSTGRES_URL;
+
+if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required for seeding");
+}
+
+const pool = new pg.Pool({ connectionString: databaseUrl });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
     const hashedPassword = await bcrypt.hash('password123', 10);
