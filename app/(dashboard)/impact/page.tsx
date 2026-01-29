@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { Utensils, Heart, Globe, Award, Loader2, Leaf, ThumbsUp, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,9 +30,20 @@ export default function ImpactDashboard() {
 
     return (
         <div className="container mx-auto px-4 py-12">
-            <div className="mb-12">
-                <h1 className="text-4xl font-black text-gray-900 tracking-tight">Your Impact Dashboard</h1>
-                <p className="text-muted-foreground mt-2 text-lg">See the real-world difference you're making every day.</p>
+            <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 className="text-4xl font-black text-gray-900 tracking-tight">Your Impact Dashboard</h1>
+                    <p className="text-muted-foreground mt-2 text-lg">See the real-world difference you're making every day.</p>
+                </div>
+                {session?.user && (session.user as any).role === "DONOR" && (
+                    <Link
+                        href="/listings/my-listings"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-white border-2 border-primary/20 px-6 py-4 font-bold text-primary shadow-sm transition-all hover:bg-primary/5 hover:border-primary active:scale-95"
+                    >
+                        <Utensils className="h-5 w-5" />
+                        My Food Donations
+                    </Link>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

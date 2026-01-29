@@ -17,7 +17,10 @@ export default function Header() {
     const navigation = [
         { name: "Explore", href: "/explore", show: true },
         { name: "Donate", href: "/listings/create", show: userRole === "DONOR" || !session },
-        { name: "Volunteer", href: "/pickups", show: userRole === "VOLUNTEER" || !session },
+        { name: "My Donations", href: "/listings/my-listings", show: userRole === "DONOR" },
+        { name: "Requests", href: "/donations/requests", show: userRole === "DONOR" },
+        { name: "Deliveries", href: "/pickups", show: userRole === "VOLUNTEER" || !session },
+        { name: "My Pickups", href: "/pickups/active", show: userRole === "VOLUNTEER" },
         { name: "Impact", href: "/impact", show: true },
         { name: "Admin", href: "/admin/dashboard", show: userRole === "ADMIN" },
     ];
