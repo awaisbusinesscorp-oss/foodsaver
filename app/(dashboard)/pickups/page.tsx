@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2, MapPin, Package, Navigation, ArrowRight, User } from "lucide-react";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { format } from "date-fns";
 import MapBox from "@/components/maps/MapBox";
 
 export default function AvailablePickupsPage() {
+    const router = useRouter();
     const { data: session } = useSession();
     const [pickups, setPickups] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -23,13 +25,24 @@ export default function AvailablePickupsPage() {
         if (session?.user) fetchPickups();
     }, [session]);
 
+    const [isAssigning, setIsAssigning] = useState<string | null>(null);
+
     const handleAssign = async (requestId: string) => {
-        const res = await fetch("/api/volunteers", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ requestId }),
-        });
-        if (res.ok) fetchPickups();
+        setIsAssigning(requestId);
+        try {
+            const res = await fetch("/api/volunteers", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ requestId }),
+            });
+            if (res.ok) {
+                router.push("/pickups/active");
+            }
+        } catch (error) {
+            console.error("Assignment error:", error);
+        } finally {
+            setIsAssigning(null);
+        }
     };
 
     if (isLoading) return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
@@ -61,8 +74,8 @@ export default function AvailablePickupsPage() {
                                     <div className="flex items-center gap-2 mb-1">
                                         <h3 className="text-xl font-bold">{pickup.listing.title}</h3>
                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${pickup.status === "ACCEPTED"
-                                                ? "bg-primary/10 text-primary"
-                                                : "bg-amber-100 text-amber-600"
+                                            ? "bg-primary/10 text-primary"
+                                            : "bg-amber-100 text-amber-600"
                                             }`}>
                                             {pickup.status === "ACCEPTED" ? "Approved" : "Awaiting Approval"}
                                         </span>
@@ -83,9 +96,19 @@ export default function AvailablePickupsPage() {
 
                                 <button
                                     onClick={() => handleAssign(pickup.id)}
-                                    className="w-full bg-primary text-white font-bold py-3 rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                                    disabled={isAssigning !== null}
+                                    className="w-full bg-primary text-white font-bold py-3 rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
-                                    Accept Delivery Task <ArrowRight className="h-4 w-4" />
+                                    {isAssigning === pickup.id ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Accepting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Accept Delivery Task <ArrowRight className="h-4 w-4" />
+                                        </>
+                                    )}
                                 </button>
                             </div>
                             <div className="w-full sm:w-48 aspect-square rounded-2xl overflow-hidden border">
