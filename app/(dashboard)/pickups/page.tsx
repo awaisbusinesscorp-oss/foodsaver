@@ -58,7 +58,15 @@ export default function AvailablePickupsPage() {
                         <div key={pickup.id} className="bg-white rounded-3xl p-6 shadow-sm border border-primary/5 flex flex-col sm:flex-row gap-6">
                             <div className="flex-1 space-y-4">
                                 <div>
-                                    <h3 className="text-xl font-bold">{pickup.listing.title}</h3>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="text-xl font-bold">{pickup.listing.title}</h3>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${pickup.status === "ACCEPTED"
+                                                ? "bg-primary/10 text-primary"
+                                                : "bg-amber-100 text-amber-600"
+                                            }`}>
+                                            {pickup.status === "ACCEPTED" ? "Approved" : "Awaiting Approval"}
+                                        </span>
+                                    </div>
                                     <p className="text-sm text-primary font-bold">{pickup.requestedQty} {pickup.listing.unit}</p>
                                 </div>
 

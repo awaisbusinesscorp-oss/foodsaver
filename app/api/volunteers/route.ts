@@ -12,9 +12,10 @@ export async function GET(req: Request) {
         const mode = searchParams.get("mode"); // 'available' or 'active'
 
         if (mode === "available") {
+            // Show both PENDING and ACCEPTED requests that don't have a volunteer yet
             const available = await prisma.donationRequest.findMany({
                 where: {
-                    status: "ACCEPTED",
+                    status: { in: ["PENDING", "ACCEPTED"] },
                     volunteerAssignment: null
                 },
                 include: {
@@ -22,7 +23,8 @@ export async function GET(req: Request) {
                         include: { images: true, donor: true }
                     },
                     receiver: true
-                }
+                },
+                orderBy: { createdAt: "desc" }
             });
             return NextResponse.json(available);
         } else {
