@@ -53,7 +53,7 @@ export default function NotificationsPage() {
                             key={notif.id}
                             className={cn(
                                 "p-6 rounded-3xl flex gap-4 transition-all relative border",
-                                notif.isRead ? "bg-white border-primary/5 opacity-70" : "bg-primary/5 border-primary/20 shadow-sm"
+                                notif.read ? "bg-white border-primary/5 opacity-70" : "bg-primary/5 border-primary/20 shadow-sm"
                             )}
                         >
                             <div className={cn(
@@ -71,7 +71,7 @@ export default function NotificationsPage() {
                                 </p>
                             </div>
 
-                            {!notif.isRead && (
+                            {!notif.read && (
                                 <button
                                     onClick={() => markAsRead(notif.id)}
                                     className="absolute top-6 right-6 p-2 rounded-full hover:bg-primary/10 text-primary transition-colors"
