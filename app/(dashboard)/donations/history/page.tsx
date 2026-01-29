@@ -73,7 +73,7 @@ export default function DonationHistoryPage() {
                                 <div className="w-full lg:w-1/3">
                                     <div className="flex items-start gap-4 mb-6">
                                         <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 border">
-                                            {request.listing.images?.[0] ? (
+                                            {request.listing?.images?.[0] ? (
                                                 <img src={request.listing.images[0].url} alt="Food" className="h-full w-full object-cover" />
                                             ) : (
                                                 <div className="h-full w-full bg-primary/5 flex items-center justify-center text-primary">
@@ -83,17 +83,17 @@ export default function DonationHistoryPage() {
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <h3 className="text-xl font-bold text-gray-900">{request.listing.title}</h3>
-                                                {request.listing.uniqueId && (
+                                                <h3 className="text-xl font-bold text-gray-900">{request.listing?.title || "Unknown Listing"}</h3>
+                                                {request.listing?.uniqueId && (
                                                     <span className="text-[10px] font-black text-white bg-gray-900 px-2 py-0.5 rounded uppercase tracking-tighter">
                                                         ID: {request.listing.uniqueId}
                                                     </span>
                                                 )}
                                             </div>
                                             <p className="text-sm font-bold text-primary mt-1">
-                                                {request.requestedQty} {request.listing.unit}
+                                                {request.requestedQty} {request.listing?.unit || "portions"}
                                             </p>
-                                            <p className="text-xs text-muted-foreground mt-1">
+                                            <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
                                                 Requested {format(new Date(request.createdAt), "MMM d, yyyy")}
                                             </p>
                                         </div>
@@ -106,10 +106,10 @@ export default function DonationHistoryPage() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Donor</p>
-                                                <p className="font-bold">{request.listing.donor.name}</p>
+                                                <p className="font-bold">{request.listing?.donor?.name || "Anonymous"}</p>
                                             </div>
                                         </div>
-                                        {request.status === "ACCEPTED" && request.listing.donor.phone && (
+                                        {request.status === "ACCEPTED" && request.listing?.donor?.phone && (
                                             <div className="flex items-center gap-3">
                                                 <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-primary shadow-sm">
                                                     <Phone className="h-4 w-4" />
@@ -177,7 +177,7 @@ export default function DonationHistoryPage() {
                                             </div>
 
                                             {/* Live Tracking Map for active deliveries */}
-                                            {(request.status === "ACCEPTED" || request.status === "PICKED_UP") && (
+                                            {(request.status === "ACCEPTED" || request.status === "PICKED_UP") && request.listing && (
                                                 <div className="mt-4 border-t pt-8">
                                                     <p className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                                                         <Navigation className="h-4 w-4 text-primary" />
@@ -187,8 +187,8 @@ export default function DonationHistoryPage() {
                                                         requestId={request.id}
                                                         donorLocation={[request.listing.latitude || 31.5204, request.listing.longitude || 74.3587]}
                                                         receiverLocation={[
-                                                            (session?.user as any).latitude || 31.5312,
-                                                            (session?.user as any).longitude || 74.3154
+                                                            (session?.user as any)?.latitude || 31.5312,
+                                                            (session?.user as any)?.longitude || 74.3154
                                                         ]}
                                                     />
                                                 </div>
