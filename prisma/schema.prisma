@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum Role {
+  DONOR
+  RECEIVER
+  VOLUNTEER
+  ADMIN
+}
+
+enum FoodType {
+  COOKED
+  RAW
+  PACKAGED
+  BEVERAGES
+}
+
+enum ListingStatus {
+  AVAILABLE
+  RESERVED
+  PICKED_UP
+  DELIVERED
+  EXPIRED
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+enum VolunteerStatus {
+  ASSIGNED
+  EN_ROUTE
+  PICKED_UP
+  DELIVERED
+}
+
+enum ReportType {
+  SPOILED_FOOD
+  UNSAFE
+  FRAUD
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  password        String?
+  name            String?
+  role            Role           @default(DONOR)
+  phone           String?
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  rating          Float          @default(0)
+  totalDonations  Int            @default(0)
+  mealsServed     Int            @default(0)
+  verified        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  listings        FoodListing[]
+  requests        DonationRequest[]
+  notifications   Notification[]
+  givenRatings    Rating[]       @relation("GivenRatings")
+  receivedRatings Rating[]       @relation("ReceivedRatings")
+  volunteerWork   VolunteerAssignment[]
+  reports         Report[]       @relation("Reporter")
+  targetedReports Report[]       @relation("TargetedUser")
+}
+
+model FoodListing {
+  id              String         @id @default(cuid())
+  donorId         String
+  donor           User           @relation(fields: [donorId], references: [id])
+  title           String
+  description     String?
+  foodType        FoodType
+  quantity        Int
+  unit            String         @default("portions")
+  expiryTime      DateTime
+  pickupStart     DateTime?
+  pickupEnd       DateTime?
+  address         String
+  latitude        Float?
+  longitude       Float?
+  status          ListingStatus  @default(AVAILABLE)
+  pickupRequired  Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  images          FoodImage[]
+  requests        DonationRequest[]
+  reports         Report[]
+}
+
+model FoodImage {
+  id              String         @id @default(cuid())
+  listingId       String
+  listing         FoodListing    @relation(fields: [listingId], references: [id])
+  url             String
+  createdAt       DateTime       @default(now())
+}
+
+model DonationRequest {
+  id              String         @id @default(cuid())
+  listingId       String
+  listing         FoodListing    @relation(fields: [listingId], references: [id])
+  receiverId      String
+  receiver        User           @relation(fields: [receiverId], references: [id])
+  requestedQty    Int
+  status          RequestStatus  @default(PENDING)
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  volunteerAssignment VolunteerAssignment?
+  ratings             Rating[]
+}
+
+model VolunteerAssignment {
+  id              String         @id @default(cuid())
+  requestId       String         @unique
+  request         DonationRequest @relation(fields: [requestId], references: [id])
+  volunteerId     String
+  volunteer       User           @relation(fields: [volunteerId], references: [id])
+  status          VolunteerStatus @default(ASSIGNED)
+  pickupTime      DateTime?
+  deliveryTime    DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Rating {
+  id              String         @id @default(cuid())
+  requestId       String
+  request         DonationRequest @relation(fields: [requestId], references: [id])
+  fromUserId      String
+  fromUser        User           @relation("GivenRatings", fields: [fromUserId], references: [id])
+  toUserId        String
+  toUser          User           @relation("ReceivedRatings", fields: [toUserId], references: [id])
+  score           Int
+  comment         String?
+  createdAt       DateTime       @default(now())
+}
+
+model Notification {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  title           String
+  message         String
+  type            String
+  read            Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+}
+
+model Report {
+  id              String         @id @default(cuid())
+  reporterId      String
+  reporter        User           @relation("Reporter", fields: [reporterId], references: [id])
+  listingId       String?
+  listing         FoodListing?   @relation(fields: [listingId], references: [id])
+  targetUserId    String?
+  targetUser      User?          @relation("TargetedUser", fields: [targetUserId], references: [id])
+  type            ReportType
+  description     String
+  status          ReportStatus   @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
