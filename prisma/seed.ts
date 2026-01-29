@@ -17,7 +17,9 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
     const hashedPassword = await bcrypt.hash('password123', 10);
 
-    // 1. Create Users
+    // Lahore coordinates: 31.5204, 74.3587
+
+    // ========== DONORS ==========
     const donor1 = await prisma.user.upsert({
         where: { email: 'donor@foodsaver.org' },
         update: {},
@@ -50,6 +52,93 @@ async function main() {
         },
     });
 
+    // Lahore Donors
+    const lahoreDonor1 = await prisma.user.upsert({
+        where: { email: 'karachi.biryani@foodsaver.pk' },
+        update: {},
+        create: {
+            email: 'karachi.biryani@foodsaver.pk',
+            name: 'Karachi Biryani House',
+            password: hashedPassword,
+            role: Role.DONOR,
+            phone: '+92 321-1234567',
+            address: 'MM Alam Road, Gulberg III, Lahore',
+            latitude: 31.5103,
+            longitude: 74.3411,
+            verified: true,
+            rating: 4.8,
+        },
+    });
+
+    const lahoreDonor2 = await prisma.user.upsert({
+        where: { email: 'food.street@foodsaver.pk' },
+        update: {},
+        create: {
+            email: 'food.street@foodsaver.pk',
+            name: 'Gawalmandi Food Street',
+            password: hashedPassword,
+            role: Role.DONOR,
+            phone: '+92 322-2345678',
+            address: 'Food Street, Gawalmandi, Lahore',
+            latitude: 31.5655,
+            longitude: 74.3141,
+            verified: true,
+            rating: 4.6,
+        },
+    });
+
+    const lahoreDonor3 = await prisma.user.upsert({
+        where: { email: 'butt.karahi@foodsaver.pk' },
+        update: {},
+        create: {
+            email: 'butt.karahi@foodsaver.pk',
+            name: 'Butt Karahi Tikka',
+            password: hashedPassword,
+            role: Role.DONOR,
+            phone: '+92 323-3456789',
+            address: 'Lakshmi Chowk, Lahore',
+            latitude: 31.5546,
+            longitude: 74.3232,
+            verified: true,
+            rating: 4.9,
+        },
+    });
+
+    const lahoreDonor4 = await prisma.user.upsert({
+        where: { email: 'andaaz.restaurant@foodsaver.pk' },
+        update: {},
+        create: {
+            email: 'andaaz.restaurant@foodsaver.pk',
+            name: 'Andaaz Restaurant',
+            password: hashedPassword,
+            role: Role.DONOR,
+            phone: '+92 324-4567890',
+            address: 'Liberty Market, Lahore',
+            latitude: 31.5127,
+            longitude: 74.3455,
+            verified: true,
+            rating: 4.5,
+        },
+    });
+
+    const lahoreDonor5 = await prisma.user.upsert({
+        where: { email: 'shezan.bakery@foodsaver.pk' },
+        update: {},
+        create: {
+            email: 'shezan.bakery@foodsaver.pk',
+            name: 'Shezan Bakery',
+            password: hashedPassword,
+            role: Role.DONOR,
+            phone: '+92 325-5678901',
+            address: 'Model Town, Lahore',
+            latitude: 31.4826,
+            longitude: 74.3239,
+            verified: true,
+            rating: 4.7,
+        },
+    });
+
+    // ========== RECEIVERS ==========
     const receiver1 = await prisma.user.upsert({
         where: { email: 'receiver@ngo.org' },
         update: {},
@@ -66,6 +155,56 @@ async function main() {
         },
     });
 
+    // Lahore Receivers
+    const lahoreReceiver1 = await prisma.user.upsert({
+        where: { email: 'edhi.lahore@receiver.pk' },
+        update: {},
+        create: {
+            email: 'edhi.lahore@receiver.pk',
+            name: 'Edhi Foundation Lahore',
+            password: hashedPassword,
+            role: Role.RECEIVER,
+            phone: '+92 326-6789012',
+            address: 'Edhi Center, Empress Road, Lahore',
+            latitude: 31.5497,
+            longitude: 74.3436,
+            verified: true,
+        },
+    });
+
+    const lahoreReceiver2 = await prisma.user.upsert({
+        where: { email: 'saylani.lahore@receiver.pk' },
+        update: {},
+        create: {
+            email: 'saylani.lahore@receiver.pk',
+            name: 'Saylani Welfare Trust',
+            password: hashedPassword,
+            role: Role.RECEIVER,
+            phone: '+92 327-7890123',
+            address: 'Jail Road, Lahore',
+            latitude: 31.5312,
+            longitude: 74.3154,
+            verified: true,
+        },
+    });
+
+    const lahoreReceiver3 = await prisma.user.upsert({
+        where: { email: 'rizq.lahore@receiver.pk' },
+        update: {},
+        create: {
+            email: 'rizq.lahore@receiver.pk',
+            name: 'Rizq Trust Lahore',
+            password: hashedPassword,
+            role: Role.RECEIVER,
+            phone: '+92 328-8901234',
+            address: 'DHA Phase 5, Lahore',
+            latitude: 31.4697,
+            longitude: 74.4021,
+            verified: true,
+        },
+    });
+
+    // ========== VOLUNTEERS/RIDERS ==========
     const volunteer1 = await prisma.user.upsert({
         where: { email: 'volunteer@helper.com' },
         update: {},
@@ -79,6 +218,93 @@ async function main() {
         },
     });
 
+    // Lahore Volunteers/Riders
+    const lahoreVolunteer1 = await prisma.user.upsert({
+        where: { email: 'ahmed.rider@volunteer.pk' },
+        update: {},
+        create: {
+            email: 'ahmed.rider@volunteer.pk',
+            name: 'Ahmed Khan',
+            password: hashedPassword,
+            role: Role.VOLUNTEER,
+            phone: '+92 329-9012345',
+            address: 'Johar Town, Lahore',
+            latitude: 31.4697,
+            longitude: 74.2728,
+            verified: true,
+            rating: 4.9,
+        },
+    });
+
+    const lahoreVolunteer2 = await prisma.user.upsert({
+        where: { email: 'ali.rider@volunteer.pk' },
+        update: {},
+        create: {
+            email: 'ali.rider@volunteer.pk',
+            name: 'Ali Raza',
+            password: hashedPassword,
+            role: Role.VOLUNTEER,
+            phone: '+92 330-0123456',
+            address: 'Iqbal Town, Lahore',
+            latitude: 31.4945,
+            longitude: 74.2825,
+            verified: true,
+            rating: 4.7,
+        },
+    });
+
+    const lahoreVolunteer3 = await prisma.user.upsert({
+        where: { email: 'usman.rider@volunteer.pk' },
+        update: {},
+        create: {
+            email: 'usman.rider@volunteer.pk',
+            name: 'Usman Ali',
+            password: hashedPassword,
+            role: Role.VOLUNTEER,
+            phone: '+92 331-1234567',
+            address: 'Garden Town, Lahore',
+            latitude: 31.5083,
+            longitude: 74.3214,
+            verified: true,
+            rating: 4.8,
+        },
+    });
+
+    const lahoreVolunteer4 = await prisma.user.upsert({
+        where: { email: 'bilal.rider@volunteer.pk' },
+        update: {},
+        create: {
+            email: 'bilal.rider@volunteer.pk',
+            name: 'Bilal Ahmed',
+            password: hashedPassword,
+            role: Role.VOLUNTEER,
+            phone: '+92 332-2345678',
+            address: 'Faisal Town, Lahore',
+            latitude: 31.4826,
+            longitude: 74.3127,
+            verified: true,
+            rating: 4.6,
+        },
+    });
+
+    const lahoreVolunteer5 = await prisma.user.upsert({
+        where: { email: 'hamza.rider@volunteer.pk' },
+        update: {},
+        create: {
+            email: 'hamza.rider@volunteer.pk',
+            name: 'Hamza Sheikh',
+            password: hashedPassword,
+            role: Role.VOLUNTEER,
+            phone: '+92 333-3456789',
+            address: 'Gulshan-e-Ravi, Lahore',
+            latitude: 31.5445,
+            longitude: 74.3521,
+            verified: true,
+            rating: 4.5,
+        },
+    });
+
+    // ========== ADMIN ==========
     const admin = await prisma.user.upsert({
         where: { email: 'admin@foodsaver.org' },
         update: {},
@@ -315,7 +541,271 @@ async function main() {
         },
     ];
 
-    // Create all listings
+    // ========== PAKISTANI FOOD LISTINGS (LAHORE) ==========
+    const pakistaniFoodListings = [
+        {
+            donorId: lahoreDonor1.id,
+            title: 'Chicken Biryani - 30 Portions',
+            description: 'Authentic Karachi-style biryani with tender chicken, aromatic basmati rice, and special spices. Freshly prepared for a wedding event.',
+            foodType: FoodType.COOKED,
+            quantity: 30,
+            unit: 'portions',
+            expiryHours: 6,
+            address: 'MM Alam Road, Gulberg III, Lahore',
+            latitude: 31.5103,
+            longitude: 74.3411,
+            image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor2.id,
+            title: 'Seekh Kebabs & Naan',
+            description: 'Juicy beef seekh kebabs with fresh tandoori naan. Perfect for iftar or dinner.',
+            foodType: FoodType.COOKED,
+            quantity: 25,
+            unit: 'servings',
+            expiryHours: 4,
+            address: 'Food Street, Gawalmandi, Lahore',
+            latitude: 31.5655,
+            longitude: 74.3141,
+            image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor3.id,
+            title: 'Mutton Karahi - Large Pot',
+            description: 'Famous Butt Karahi with fresh mutton, tomatoes, and green chilies. Cooked in traditional style.',
+            foodType: FoodType.COOKED,
+            quantity: 20,
+            unit: 'portions',
+            expiryHours: 5,
+            address: 'Lakshmi Chowk, Lahore',
+            latitude: 31.5546,
+            longitude: 74.3232,
+            image: 'https://images.unsplash.com/photo-1545247181-516773cae754?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor4.id,
+            title: 'Nihari with Naan',
+            description: 'Slow-cooked beef nihari with bone marrow, served with fresh kulcha naan. Traditional breakfast dish.',
+            foodType: FoodType.COOKED,
+            quantity: 15,
+            unit: 'bowls',
+            expiryHours: 8,
+            address: 'Liberty Market, Lahore',
+            latitude: 31.5127,
+            longitude: 74.3455,
+            image: 'https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor5.id,
+            title: 'Fresh Sheermal & Puri',
+            description: 'Sweet sheermal bread and crispy puris. Perfect for breakfast with halwa.',
+            foodType: FoodType.PACKAGED,
+            quantity: 50,
+            unit: 'pieces',
+            expiryHours: 24,
+            address: 'Model Town, Lahore',
+            latitude: 31.4826,
+            longitude: 74.3239,
+            image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor1.id,
+            title: 'Haleem - Special Recipe',
+            description: 'Rich and creamy haleem made with wheat, lentils, and tender beef. Garnished with fried onions and ginger.',
+            foodType: FoodType.COOKED,
+            quantity: 20,
+            unit: 'bowls',
+            expiryHours: 6,
+            address: 'MM Alam Road, Gulberg III, Lahore',
+            latitude: 31.5103,
+            longitude: 74.3411,
+            image: 'https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor2.id,
+            title: 'Chicken Tikka Platter',
+            description: 'Marinated chicken tikka boti with mint chutney and fresh salad. Charcoal grilled to perfection.',
+            foodType: FoodType.COOKED,
+            quantity: 40,
+            unit: 'pieces',
+            expiryHours: 4,
+            address: 'Food Street, Gawalmandi, Lahore',
+            latitude: 31.5655,
+            longitude: 74.3141,
+            image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor3.id,
+            title: 'Aloo Paratha & Lassi',
+            description: 'Traditional stuffed potato parathas with fresh sweet lassi. Authentic Lahori breakfast.',
+            foodType: FoodType.COOKED,
+            quantity: 30,
+            unit: 'servings',
+            expiryHours: 3,
+            address: 'Lakshmi Chowk, Lahore',
+            latitude: 31.5546,
+            longitude: 74.3232,
+            image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor4.id,
+            title: 'Daal Chawal - Family Pack',
+            description: 'Yellow daal tadka with steamed basmati rice. Comfort food for the whole family.',
+            foodType: FoodType.COOKED,
+            quantity: 25,
+            unit: 'portions',
+            expiryHours: 6,
+            address: 'Liberty Market, Lahore',
+            latitude: 31.5127,
+            longitude: 74.3455,
+            image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor5.id,
+            title: 'Gulab Jamun & Jalebi',
+            description: 'Fresh gulab jamun and crispy jalebi. Traditional Pakistani sweets.',
+            foodType: FoodType.PACKAGED,
+            quantity: 60,
+            unit: 'pieces',
+            expiryHours: 48,
+            address: 'Model Town, Lahore',
+            latitude: 31.4826,
+            longitude: 74.3239,
+            image: 'https://images.unsplash.com/photo-1666190050371-df434faec966?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor1.id,
+            title: 'Chapli Kebab & Roti',
+            description: 'Peshawar-style chapli kebabs made with minced beef and special spices. Served with fresh roti.',
+            foodType: FoodType.COOKED,
+            quantity: 20,
+            unit: 'servings',
+            expiryHours: 4,
+            address: 'MM Alam Road, Gulberg III, Lahore',
+            latitude: 31.5103,
+            longitude: 74.3411,
+            image: 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor2.id,
+            title: 'Paya (Trotters Curry)',
+            description: 'Traditional slow-cooked paya with rich gravy. Best served with fresh naan.',
+            foodType: FoodType.COOKED,
+            quantity: 15,
+            unit: 'bowls',
+            expiryHours: 8,
+            address: 'Food Street, Gawalmandi, Lahore',
+            latitude: 31.5655,
+            longitude: 74.3141,
+            image: 'https://images.unsplash.com/photo-1574484284002-952d92456975?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor3.id,
+            title: 'Samosas & Pakoras',
+            description: 'Crispy vegetable samosas and mixed pakoras. Perfect evening snacks with chutney.',
+            foodType: FoodType.COOKED,
+            quantity: 100,
+            unit: 'pieces',
+            expiryHours: 6,
+            address: 'Lakshmi Chowk, Lahore',
+            latitude: 31.5546,
+            longitude: 74.3232,
+            image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor4.id,
+            title: 'Chicken Pulao',
+            description: 'Fragrant chicken pulao with whole spices and fried onions. Light and flavorful.',
+            foodType: FoodType.COOKED,
+            quantity: 25,
+            unit: 'portions',
+            expiryHours: 5,
+            address: 'Liberty Market, Lahore',
+            latitude: 31.5127,
+            longitude: 74.3455,
+            image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor5.id,
+            title: 'Fresh Rooh Afza Drink',
+            description: 'Chilled Rooh Afza sherbet bottles. Perfect summer refreshment.',
+            foodType: FoodType.BEVERAGES,
+            quantity: 30,
+            unit: 'bottles',
+            expiryHours: 48,
+            address: 'Model Town, Lahore',
+            latitude: 31.4826,
+            longitude: 74.3239,
+            image: 'https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor1.id,
+            title: 'Qeema Naan',
+            description: 'Fresh naan stuffed with spiced minced meat. Popular street food.',
+            foodType: FoodType.COOKED,
+            quantity: 35,
+            unit: 'pieces',
+            expiryHours: 4,
+            address: 'MM Alam Road, Gulberg III, Lahore',
+            latitude: 31.5103,
+            longitude: 74.3411,
+            image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor2.id,
+            title: 'Korma & Rice',
+            description: 'Chicken korma with rich yogurt-based gravy. Served with fragrant rice.',
+            foodType: FoodType.COOKED,
+            quantity: 20,
+            unit: 'portions',
+            expiryHours: 6,
+            address: 'Food Street, Gawalmandi, Lahore',
+            latitude: 31.5655,
+            longitude: 74.3141,
+            image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor3.id,
+            title: 'Chana Chaat',
+            description: 'Spicy chickpea chaat with onions, tomatoes, and tangy tamarind chutney.',
+            foodType: FoodType.COOKED,
+            quantity: 40,
+            unit: 'plates',
+            expiryHours: 3,
+            address: 'Lakshmi Chowk, Lahore',
+            latitude: 31.5546,
+            longitude: 74.3232,
+            image: 'https://images.unsplash.com/photo-1626132647523-66c6e0b85cec?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor4.id,
+            title: 'Kheer (Rice Pudding)',
+            description: 'Creamy rice kheer with cardamom, pistachios, and almonds. Traditional dessert.',
+            foodType: FoodType.COOKED,
+            quantity: 25,
+            unit: 'bowls',
+            expiryHours: 24,
+            address: 'Liberty Market, Lahore',
+            latitude: 31.5127,
+            longitude: 74.3455,
+            image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&q=80&w=800'
+        },
+        {
+            donorId: lahoreDonor5.id,
+            title: 'Fresh Mangoes',
+            description: 'Sweet Chaunsa mangoes from Punjab. Ripe and ready to eat.',
+            foodType: FoodType.RAW,
+            quantity: 50,
+            unit: 'kg',
+            expiryHours: 72,
+            address: 'Model Town, Lahore',
+            latitude: 31.4826,
+            longitude: 74.3239,
+            image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=800'
+        },
+    ];
+
+    // Create all international listings
     for (const listing of foodListings) {
         await prisma.foodListing.create({
             data: {
@@ -337,7 +827,32 @@ async function main() {
         });
     }
 
-    console.log('Seed data created successfully! Added 20 food listings.');
+    // Create all Pakistani listings (Lahore)
+    for (const listing of pakistaniFoodListings) {
+        await prisma.foodListing.create({
+            data: {
+                donorId: listing.donorId,
+                title: listing.title,
+                description: listing.description,
+                foodType: listing.foodType,
+                quantity: listing.quantity,
+                unit: listing.unit,
+                expiryTime: new Date(Date.now() + 1000 * 60 * 60 * listing.expiryHours),
+                address: listing.address,
+                latitude: listing.latitude + (Math.random() - 0.5) * 0.02,
+                longitude: listing.longitude + (Math.random() - 0.5) * 0.02,
+                status: ListingStatus.AVAILABLE,
+                images: listing.image ? {
+                    create: [{ url: listing.image }]
+                } : undefined
+            },
+        });
+    }
+
+    console.log('Seed data created successfully!');
+    console.log('- 20 international food listings');
+    console.log('- 20 Pakistani food listings (Lahore)');
+    console.log('- 5 Lahore donors, 3 receivers, 5 volunteers/riders');
 }
 
 main()
