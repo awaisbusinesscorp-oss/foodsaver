@@ -46,13 +46,20 @@ export default function ListingCard({ listing, className }: ListingCardProps) {
                         <Utensils className="h-12 w-12" />
                     </div>
                 )}
-                <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm">
-                        {listing.foodType}
-                    </span>
-                    {isExpired && (
-                        <span className="rounded-full bg-destructive/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-                            Expired
+                <div className="absolute top-3 left-3 right-3 flex justify-between items-start gap-2">
+                    <div className="flex gap-2">
+                        <span className="rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur-sm">
+                            {listing.foodType}
+                        </span>
+                        {isExpired && (
+                            <span className="rounded-full bg-destructive/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                                Expired
+                            </span>
+                        )}
+                    </div>
+                    {(listing as any).uniqueId && (
+                        <span className="rounded-md bg-gray-900/80 px-2 py-1 text-[10px] font-black uppercase tracking-tighter text-white backdrop-blur-sm">
+                            {(listing as any).uniqueId}
                         </span>
                     )}
                 </div>

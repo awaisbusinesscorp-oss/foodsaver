@@ -31,6 +31,32 @@ export default function ActivePickupsPage() {
         if (res.ok) fetchActive();
     };
 
+    // Live Tracking logic
+    useEffect(() => {
+        const activePickups = assignments.filter(a => a.status === 'PICKED_UP');
+        if (activePickups.length === 0) return;
+
+        const interval = setInterval(() => {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    activePickups.forEach(a => {
+                        fetch("/api/volunteers/tracking", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                assignmentId: a.id,
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            }),
+                        });
+                    });
+                }, (err) => console.error("Geo error:", err), { enableHighAccuracy: true });
+            }
+        }, 15000); // 15 seconds
+
+        return () => clearInterval(interval);
+    }, [assignments]);
+
     if (isLoading) return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
 
     return (
@@ -51,7 +77,13 @@ export default function ActivePickupsPage() {
                 <div className="space-y-8">
                     {assignments.map((assignment) => (
                         <div key={assignment.id} className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-l-8 border-primary relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4">
+                            <div className="absolute top-0 right-0 p-4 flex gap-2">
+                                {assignment.status === "PICKED_UP" && (
+                                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+                                        <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                                        Live Tracking Active
+                                    </span>
+                                )}
                                 <span className="bg-primary/10 text-primary px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">
                                     {assignment.status}
                                 </span>

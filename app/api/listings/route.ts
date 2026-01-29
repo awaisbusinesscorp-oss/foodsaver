@@ -31,8 +31,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
         }
 
+        const uniqueId = `FS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
         const listing = await prisma.foodListing.create({
             data: {
+                uniqueId,
                 title,
                 description,
                 foodType,

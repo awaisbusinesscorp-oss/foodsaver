@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, Clock, CheckCircle2, XCircle, MapPin, Phone, Package, ArrowRight } from "lucide-react";
+import { Loader2, Clock, CheckCircle2, XCircle, MapPin, Phone, Package, ArrowRight, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Link from "next/link";
+import VolunteerTracker from "@/components/maps/VolunteerTracker";
 
 const STATUS_TRACKER = [
     { id: "PENDING", label: "Requested", icon: Clock },
@@ -81,7 +82,14 @@ export default function DonationHistoryPage() {
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-900">{request.listing.title}</h3>
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-xl font-bold text-gray-900">{request.listing.title}</h3>
+                                                {request.listing.uniqueId && (
+                                                    <span className="text-[10px] font-black text-white bg-gray-900 px-2 py-0.5 rounded uppercase tracking-tighter">
+                                                        ID: {request.listing.uniqueId}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-sm font-bold text-primary mt-1">
                                                 {request.requestedQty} {request.listing.unit}
                                             </p>
@@ -120,8 +128,8 @@ export default function DonationHistoryPage() {
                                     </div>
                                 </div>
 
-                                {/* Right Side: Status Tracker */}
-                                <div className="flex-1">
+                                {/* Right Side: Status Tracker & Live Map */}
+                                <div className="flex-1 flex flex-col">
                                     <h4 className="font-bold text-gray-900 mb-8 flex items-center gap-2">
                                         <Clock className="h-5 w-5 text-primary" />
                                         Tracking Status: {request.status}
@@ -136,42 +144,55 @@ export default function DonationHistoryPage() {
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="relative pt-4 pb-12">
-                                            {/* Progress Line */}
-                                            <div className="absolute top-10 left-6 right-6 h-0.5 bg-muted hidden sm:block" />
+                                        <div className="space-y-8">
+                                            {/* Status Stepper */}
+                                            <div className="relative pt-4 pb-4">
+                                                <div className="absolute top-10 left-6 right-6 h-0.5 bg-muted hidden sm:block" />
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                                    {STATUS_TRACKER.map((step, idx) => {
+                                                        const isActive = request.status === step.id || (
+                                                            (request.status === "ACCEPTED" && idx === 0) ||
+                                                            (request.status === "PICKED_UP" && idx <= 2) ||
+                                                            (request.status === "DELIVERED" && idx <= 3)
+                                                        );
 
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                                {STATUS_TRACKER.map((step, idx) => {
-                                                    const isActive = request.status === step.id || (
-                                                        (request.status === "ACCEPTED" && idx === 0) ||
-                                                        (request.status === "PICKED_UP" && idx <= 2) ||
-                                                        (request.status === "DELIVERED" && idx <= 3)
-                                                    );
-                                                    const iscurrent = request.status === step.id;
-
-                                                    return (
-                                                        <div key={step.id} className="relative flex flex-col items-center text-center">
-                                                            <div className={cn(
-                                                                "z-10 h-12 w-12 rounded-full flex items-center justify-center transition-all duration-500",
-                                                                isActive ? "bg-primary text-white scale-110 shadow-lg shadow-primary/30" : "bg-white border-2 text-muted-foreground"
-                                                            )}>
-                                                                <step.icon className="h-6 w-6" />
+                                                        return (
+                                                            <div key={step.id} className="relative flex flex-col items-center text-center">
+                                                                <div className={cn(
+                                                                    "z-10 h-12 w-12 rounded-full flex items-center justify-center transition-all duration-500",
+                                                                    isActive ? "bg-primary text-white scale-110 shadow-lg shadow-primary/30" : "bg-white border-2 text-muted-foreground"
+                                                                )}>
+                                                                    <step.icon className="h-6 w-6" />
+                                                                </div>
+                                                                <p className={cn(
+                                                                    "mt-4 text-[10px] font-bold uppercase tracking-widest",
+                                                                    isActive ? "text-primary" : "text-muted-foreground"
+                                                                )}>
+                                                                    {step.label}
+                                                                </p>
                                                             </div>
-                                                            <p className={cn(
-                                                                "mt-4 text-xs font-bold uppercase tracking-widest",
-                                                                isActive ? "text-primary" : "text-muted-foreground"
-                                                            )}>
-                                                                {step.label}
-                                                            </p>
-                                                            {iscurrent && (
-                                                                <span className="absolute -top-1 bg-primary text-[8px] font-black text-white px-1.5 py-0.5 rounded-full animate-bounce">
-                                                                    NOW
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
+
+                                            {/* Live Tracking Map for active deliveries */}
+                                            {(request.status === "ACCEPTED" || request.status === "PICKED_UP") && (
+                                                <div className="mt-4 border-t pt-8">
+                                                    <p className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                        <Navigation className="h-4 w-4 text-primary" />
+                                                        Volunteer Delivery Tracker
+                                                    </p>
+                                                    <VolunteerTracker
+                                                        requestId={request.id}
+                                                        donorLocation={[request.listing.latitude || 31.5204, request.listing.longitude || 74.3587]}
+                                                        receiverLocation={[
+                                                            (session?.user as any).latitude || 31.5312,
+                                                            (session?.user as any).longitude || 74.3154
+                                                        ]}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
