@@ -5,25 +5,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 
-// Custom icons
-const VolunteerIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png", // Delivery bike icon
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-});
-
-const DonorIcon = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
-
-const ReceiverIcon = L.icon({
-    iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png", // Home icon
-    iconSize: [30, 30],
-    iconAnchor: [15, 30],
-});
-
 interface TrackingMapProps {
     volunteerPos: [number, number];
     donorPos: [number, number];
@@ -33,14 +14,36 @@ interface TrackingMapProps {
 function MapUpdater({ volunteerPos }: { volunteerPos: [number, number] }) {
     const map = useMap();
     useEffect(() => {
-        // Only center on volunteer if they move significantly
-        // or just keep them in view
-        // map.panTo(volunteerPos);
+        // Just keep the volunteer in center if they move
+        if (volunteerPos) {
+            map.panTo(volunteerPos);
+        }
     }, [volunteerPos, map]);
     return null;
 }
 
 export default function TrackingMap({ volunteerPos, donorPos, receiverPos }: TrackingMapProps) {
+    if (typeof window === 'undefined') return null;
+
+    // Custom icons
+    const VolunteerIcon = L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png", // Delivery bike icon
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+    });
+
+    const DonorIcon = L.icon({
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+    });
+
+    const ReceiverIcon = L.icon({
+        iconUrl: "https://cdn-icons-png.flaticon.com/512/25/25694.png", // Home icon
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+    });
+
     return (
         <MapContainer
             center={volunteerPos}
