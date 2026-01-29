@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { MapPin, Clock, Utensils, Calendar } from "lucide-react";
+import Link from "next/link";
+import { MapPin, Clock, Utensils } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -25,11 +25,14 @@ export default function ListingCard({ listing, className }: ListingCardProps) {
     const isExpired = new Date(listing.expiryTime) < new Date();
 
     return (
-        <div className={cn(
-            "group relative overflow-hidden rounded-2xl border bg-white shadow-sm transition-all hover:shadow-md",
-            isExpired && "opacity-75",
-            className
-        )}>
+        <Link
+            href={`/listings/${listing.id}`}
+            className={cn(
+                "group relative block overflow-hidden rounded-2xl border bg-white shadow-sm transition-all hover:shadow-lg hover:border-primary/30",
+                isExpired && "opacity-75",
+                className
+            )}
+        >
             {/* Image Section */}
             <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                 {listing.images && listing.images.length > 0 ? (
@@ -80,14 +83,18 @@ export default function ListingCard({ listing, className }: ListingCardProps) {
                 </div>
 
                 <div className="mt-5">
-                    <button
-                        disabled={isExpired}
-                        className="w-full rounded-xl bg-primary py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98] disabled:bg-gray-300"
+                    <span
+                        className={cn(
+                            "block w-full rounded-xl py-2.5 text-sm font-bold text-center shadow-sm transition-all",
+                            isExpired
+                                ? "bg-gray-300 text-gray-500"
+                                : "bg-primary text-white group-hover:bg-primary/90"
+                        )}
                     >
                         {isExpired ? "Unavailable" : "View Details"}
-                    </button>
+                    </span>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }
