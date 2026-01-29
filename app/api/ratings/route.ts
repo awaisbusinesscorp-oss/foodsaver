@@ -12,9 +12,9 @@ export async function POST(req: Request) {
 
         const newRating = await prisma.rating.create({
             data: {
-                fromId: (session.user as any).id,
-                toId: targetId,
-                rating: parseInt(rating),
+                fromUserId: (session.user as any).id,
+                toUserId: targetId,
+                score: parseInt(rating),
                 comment,
                 requestId
             }
@@ -22,10 +22,10 @@ export async function POST(req: Request) {
 
         // Update target user's average rating
         const userRatings = await prisma.rating.findMany({
-            where: { toId: targetId }
+            where: { toUserId: targetId }
         });
 
-        const avg = userRatings.reduce((acc: number, curr: any) => acc + curr.rating, 0) / userRatings.length;
+        const avg = userRatings.reduce((acc: number, curr: any) => acc + curr.score, 0) / userRatings.length;
 
         await prisma.user.update({
             where: { id: targetId },
