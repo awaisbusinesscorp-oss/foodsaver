@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { Utensils, Heart, Globe, Award, Loader2, Leaf, ThumbsUp, TrendingUp } from "lucide-react";
+import { Utensils, Heart, Globe, Award, Loader2, Leaf, ThumbsUp, TrendingUp, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ImpactDashboard() {
@@ -42,6 +42,15 @@ export default function ImpactDashboard() {
                     >
                         <Utensils className="h-5 w-5" />
                         My Food Donations
+                    </Link>
+                )}
+                {session?.user && (session.user as any).role === "RECEIVER" && (
+                    <Link
+                        href="/donations/history"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-white border-2 border-primary/20 px-6 py-4 font-bold text-primary shadow-sm transition-all hover:bg-primary/5 hover:border-primary active:scale-95"
+                    >
+                        <Clock className="h-5 w-5" />
+                        My Food Receives
                     </Link>
                 )}
             </div>

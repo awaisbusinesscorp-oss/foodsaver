@@ -21,6 +21,7 @@ export default function Header() {
         { name: "Requests", href: "/donations/requests", show: userRole === "DONOR" },
         { name: "Deliveries", href: "/pickups", show: userRole === "VOLUNTEER" || !session },
         { name: "My Pickups", href: "/pickups/active", show: userRole === "VOLUNTEER" },
+        { name: "My Receives", href: "/donations/history", show: userRole === "RECEIVER" },
         { name: "Impact", href: "/impact", show: true },
         { name: "Admin", href: "/admin/dashboard", show: userRole === "ADMIN" },
     ];
