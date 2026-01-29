@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
     Utensils,
     MapPin,
-    Calendar,
     Clock,
     Plus,
-    X,
     Loader2,
     Image as ImageIcon,
-    Camera
+    Upload,
+    X,
+    Check
 } from "lucide-react";
 
 const FOOD_TYPES = ["COOKED", "RAW", "PACKAGED", "BEVERAGES"];
 
 export default function CreateListingForm() {
     const router = useRouter();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -41,6 +44,49 @@ export default function CreateListingForm() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Preview the image
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload the image
+        setIsUploading(true);
+        try {
+            const uploadFormData = new FormData();
+            uploadFormData.append("file", file);
+
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: uploadFormData,
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setFormData(prev => ({ ...prev, imageUrl: data.url }));
+            } else {
+                setError("Failed to upload image. Please try again.");
+            }
+        } catch (err) {
+            setError("Failed to upload image. Please try again.");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveImage = () => {
+        setImagePreview(null);
+        setFormData(prev => ({ ...prev, imageUrl: "" }));
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    };
+
     const handleDetectLocation = () => {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
@@ -52,7 +98,7 @@ export default function CreateListingForm() {
                     }));
                     alert("Location detected!");
                 },
-                (error) => {
+                () => {
                     alert("Could not detect location. Please enter address manually.");
                 }
             );
@@ -205,32 +251,93 @@ export default function CreateListingForm() {
                             className="absolute right-2 top-2 p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
                             title="Detect Location"
                         >
-                            <Camera className="h-5 w-5" />
+                            <MapPin className="h-5 w-5" />
                         </button>
                     </div>
                 </div>
 
-                <div className="col-span-2 space-y-2">
+                {/* Image Upload Section */}
+                <div className="col-span-2 space-y-3">
                     <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                         <ImageIcon className="h-4 w-4 text-primary" />
-                        Image URL
+                        Food Photo
                     </label>
+
+                    {/* Hidden file input */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                    />
+
+                    {imagePreview ? (
+                        /* Image Preview */
+                        <div className="relative w-full h-48 rounded-2xl overflow-hidden border-2 border-primary/20 bg-gray-50">
+                            <img
+                                src={imagePreview}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                            />
+                            {isUploading && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                    <Loader2 className="h-8 w-8 animate-spin text-white" />
+                                </div>
+                            )}
+                            {!isUploading && formData.imageUrl && (
+                                <div className="absolute top-2 left-2 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                    <Check className="h-3 w-3" />
+                                    Uploaded
+                                </div>
+                            )}
+                            <button
+                                type="button"
+                                onClick={handleRemoveImage}
+                                className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white text-gray-700 rounded-full shadow-lg transition-all"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        /* Upload Button */
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full h-48 rounded-2xl border-2 border-dashed border-gray-300 hover:border-primary/50 bg-gray-50 hover:bg-primary/5 flex flex-col items-center justify-center gap-3 transition-all cursor-pointer group"
+                        >
+                            <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Upload className="h-7 w-7 text-primary" />
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-semibold text-gray-700">Click to upload photo</p>
+                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WEBP up to 5MB</p>
+                            </div>
+                        </button>
+                    )}
+
+                    {/* Optional URL input */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-gray-200"></div>
+                        <span className="text-xs text-muted-foreground font-medium">OR paste URL</span>
+                        <div className="flex-1 h-px bg-gray-200"></div>
+                    </div>
                     <input
                         name="imageUrl"
-                        placeholder="Paste an image URL (e.g. from Unsplash)"
-                        className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                        placeholder="https://example.com/image.jpg"
+                        className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
                         value={formData.imageUrl}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                            handleChange(e);
+                            if (e.target.value) setImagePreview(e.target.value);
+                        }}
                     />
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider pt-1">
-                        * Cloudinary integration coming soon for direct uploads
-                    </p>
                 </div>
             </div>
 
             <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
                 className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-lg font-bold text-white shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-50"
             >
                 {isLoading ? (
