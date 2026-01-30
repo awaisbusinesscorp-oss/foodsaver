@@ -35,6 +35,7 @@ export default withAuth(
 
 export const config = {
     matcher: [
+        "/dashboard",
         "/admin/:path*",
         "/listings/create",
         "/listings/my-listings",
