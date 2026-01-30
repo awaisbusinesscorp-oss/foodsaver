@@ -35,9 +35,8 @@ export async function POST(req: Request) {
 
         const listing = await prisma.foodListing.create({
             data: {
-                uniqueId,
                 title,
-                description,
+                description: description || null,
                 foodType,
                 quantity: parseInt(quantity.toString()),
                 unit,
@@ -45,8 +44,8 @@ export async function POST(req: Request) {
                 pickupStart: pickupStart ? new Date(pickupStart) : null,
                 pickupEnd: pickupEnd ? new Date(pickupEnd) : null,
                 address,
-                latitude: parseFloat(latitude.toString()),
-                longitude: parseFloat(longitude.toString()),
+                latitude: latitude && latitude !== 0 ? parseFloat(latitude.toString()) : null,
+                longitude: longitude && longitude !== 0 ? parseFloat(longitude.toString()) : null,
                 donorId: (session.user as any).id,
                 status: "AVAILABLE",
                 images: imageUrl ? {
@@ -59,9 +58,12 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(listing, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Listing creation error:", error);
-        return NextResponse.json({ message: "Failed to create listing" }, { status: 500 });
+        return NextResponse.json({
+            message: "Failed to create listing",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        }, { status: 500 });
     }
 }
 
