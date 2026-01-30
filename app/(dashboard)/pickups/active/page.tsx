@@ -12,10 +12,16 @@ export default function ActivePickupsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchActive = async () => {
-        const res = await fetch("/api/volunteers?mode=active");
-        const data = await res.json();
-        setAssignments(data);
-        setIsLoading(false);
+        try {
+            const res = await fetch("/api/volunteers?mode=active");
+            const data = await res.json();
+            setAssignments(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Failed to fetch active assignments:", error);
+            setAssignments([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -33,7 +39,7 @@ export default function ActivePickupsPage() {
 
     // Live Tracking logic
     useEffect(() => {
-        const activePickups = assignments.filter(a => a.status === 'PICKED_UP');
+        const activePickups = Array.isArray(assignments) ? assignments.filter(a => a.status === 'PICKED_UP') : [];
         if (activePickups.length === 0) return;
 
         const interval = setInterval(() => {
@@ -75,7 +81,7 @@ export default function ActivePickupsPage() {
                 </div>
             ) : (
                 <div className="space-y-8">
-                    {assignments.map((assignment) => (
+                    {Array.isArray(assignments) && assignments.map((assignment) => (
                         <div key={assignment.id} className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-l-8 border-primary relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 flex gap-2">
                                 {assignment.status === "PICKED_UP" && (

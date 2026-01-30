@@ -12,10 +12,16 @@ export default function DonorRequestsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchRequests = async () => {
-        const res = await fetch("/api/donations?role=donor");
-        const data = await res.json();
-        setRequests(data);
-        setIsLoading(false);
+        try {
+            const res = await fetch("/api/donations?role=donor");
+            const data = await res.json();
+            setRequests(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Failed to fetch requests:", error);
+            setRequests([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -67,7 +73,7 @@ export default function DonorRequestsPage() {
                 </div>
             ) : (
                 <div className="space-y-6">
-                    {requests.map((request) => (
+                    {Array.isArray(requests) && requests.map((request) => (
                         <div
                             key={request.id}
                             className="bg-white rounded-3xl p-6 shadow-sm border border-primary/5 hover:shadow-md transition-shadow"

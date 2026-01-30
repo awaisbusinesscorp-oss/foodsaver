@@ -16,7 +16,12 @@ export default function MyListingsPage() {
             fetch(`/api/listings?donorId=${(session.user as any).id}`)
                 .then((res) => res.json())
                 .then((data) => {
-                    setListings(data);
+                    setListings(Array.isArray(data) ? data : []);
+                    setIsLoading(false);
+                })
+                .catch((error) => {
+                    console.error("Failed to fetch listings:", error);
+                    setListings([]);
                     setIsLoading(false);
                 });
         }
@@ -68,7 +73,7 @@ export default function MyListingsPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {listings.map((listing) => (
+                    {Array.isArray(listings) && listings.map((listing) => (
                         <ListingCard key={listing.id} listing={listing} />
                     ))}
                 </div>

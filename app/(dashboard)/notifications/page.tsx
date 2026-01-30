@@ -12,10 +12,16 @@ export default function NotificationsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchNotifications = async () => {
-        const res = await fetch("/api/notifications");
-        const data = await res.json();
-        setNotifications(data);
-        setIsLoading(false);
+        try {
+            const res = await fetch("/api/notifications");
+            const data = await res.json();
+            setNotifications(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+            setNotifications([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -48,7 +54,7 @@ export default function NotificationsPage() {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {notifications.map((notif) => (
+                    {Array.isArray(notifications) && notifications.map((notif) => (
                         <div
                             key={notif.id}
                             className={cn(
