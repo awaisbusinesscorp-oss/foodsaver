@@ -43,7 +43,7 @@ export default function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex md:items-center md:space-x-6">
-                        {mounted && navigation.filter(i => i.show).map((item) => (
+                        {mounted && Array.isArray(navigation) && navigation.filter(i => i.show).map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
@@ -121,7 +121,7 @@ export default function Header() {
             {mounted && isMobileMenuOpen && (
                 <div className="border-b bg-background md:hidden">
                     <div className="space-y-1 px-4 pb-3 pt-2">
-                        {navigation.filter(i => i.show).map((item) => (
+                        {Array.isArray(navigation) && navigation.filter(i => i.show).map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
