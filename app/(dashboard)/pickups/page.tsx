@@ -15,10 +15,16 @@ export default function AvailablePickupsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchPickups = async () => {
-        const res = await fetch("/api/volunteers?mode=available");
-        const data = await res.json();
-        setPickups(data);
-        setIsLoading(false);
+        try {
+            const res = await fetch("/api/volunteers?mode=available");
+            const data = await res.json();
+            setPickups(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Failed to fetch pickups:", error);
+            setPickups([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -67,7 +73,7 @@ export default function AvailablePickupsPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {pickups.map((pickup) => (
+                    {Array.isArray(pickups) && pickups.map((pickup) => (
                         <div key={pickup.id} className="bg-white rounded-3xl p-6 shadow-sm border border-primary/5 flex flex-col sm:flex-row gap-6">
                             <div className="flex-1 space-y-4">
                                 <div>
