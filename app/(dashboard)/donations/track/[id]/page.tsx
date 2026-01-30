@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Loader2, Phone, User, MapPin, Package, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 
 // Dynamic import for Map to avoid SSR issues
 const TrackingMap = dynamic(() => import("@/components/maps/TrackingMap"), {
@@ -35,8 +36,10 @@ interface TrackingData {
     };
 }
 
-export default function OrderTrackingPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = use(params);
+export default function OrderTrackingPage() {
+    const params = useParams();
+    const id = params?.id as string;
+
     const [trackingData, setTrackingData] = useState<TrackingData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
@@ -56,9 +59,11 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
     };
 
     useEffect(() => {
-        fetchTracking();
-        const interval = setInterval(fetchTracking, 10000); // Poll every 10s
-        return () => clearInterval(interval);
+        if (id) {
+            fetchTracking();
+            const interval = setInterval(fetchTracking, 10000); // Poll every 10s
+            return () => clearInterval(interval);
+        }
     }, [id]);
 
     if (isLoading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>;
@@ -106,7 +111,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                         <Package className="h-5 w-5 text-primary" />
                         Live Delivery Tracking
                     </h1>
-                    <p className="text-sm text-gray-500 font-medium">Order ID: #{id.slice(-6)}</p>
+                    <p className="text-sm text-gray-500 font-medium">Order ID: #{id?.slice(-6) || 'N/A'}</p>
                 </div>
                 <div className={`mt-4 sm:mt-0 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 ${isDelivered ? "bg-green-100 text-green-700" : "bg-blue-50 text-blue-600 animate-pulse"}`}>
                     {isDelivered ? <CheckCircle2 className="h-4 w-4" /> : <div className="h-2 w-2 rounded-full bg-blue-600" />}
