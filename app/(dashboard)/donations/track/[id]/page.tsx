@@ -108,8 +108,7 @@ export default function OrderTrackingPage({ params }: { params: Promise<{ id: st
                     </h1>
                     <p className="text-sm text-gray-500 font-medium">Order ID: #{id.slice(-6)}</p>
                 </div>
-                <div className={`mt-4 sm:mt-0 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 ${isDelivered ? "bg-green-100 text-green-700" : "bg-blue-50 text-blue-600 animate-pulse"
-                    }`}>
+                <div className={`mt-4 sm:mt-0 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-2 ${isDelivered ? "bg-green-100 text-green-700" : "bg-blue-50 text-blue-600 animate-pulse"}`}>
                     {isDelivered ? <CheckCircle2 className="h-4 w-4" /> : <div className="h-2 w-2 rounded-full bg-blue-600" />}
                     {status.replace("_", " ")}
                 </div>
