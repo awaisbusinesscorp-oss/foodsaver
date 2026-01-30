@@ -4,9 +4,15 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Loader2, Clock, CheckCircle2, XCircle, MapPin, Phone, Package, ArrowRight, Navigation } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import Link from "next/link";
-import VolunteerTracker from "@/components/maps/VolunteerTracker";
+import dynamic from "next/dynamic";
+
+// Dynamically import VolunteerTracker to be extra safe
+const VolunteerTracker = dynamic(() => import("@/components/maps/VolunteerTracker"), {
+    ssr: false,
+    loading: () => <div className="h-40 flex items-center justify-center bg-muted/10 rounded-2xl animate-pulse"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+});
 
 const STATUS_TRACKER = [
     { id: "PENDING", label: "Requested", icon: Clock },
@@ -19,13 +25,24 @@ export default function DonationHistoryPage() {
     const { data: session } = useSession();
     const [requests, setRequests] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (session?.user) {
             fetch("/api/donations?role=receiver")
-                .then((res) => res.json())
+                .then(async (res) => {
+                    if (!res.ok) throw new Error("Failed to fetch history");
+                    const data = await res.json();
+                    if (!Array.isArray(data)) throw new Error("Invalid data format");
+                    return data;
+                })
                 .then((data) => {
                     setRequests(data);
+                    setIsLoading(false);
+                })
+                .catch(err => {
+                    console.error("Donation history fetch error:", err);
+                    setError(err.message);
                     setIsLoading(false);
                 });
         }
@@ -38,6 +55,24 @@ export default function DonationHistoryPage() {
             </div>
         );
     }
+
+    if (error) {
+        return (
+            <div className="container mx-auto px-4 py-20 text-center">
+                <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                <h2 className="text-2xl font-bold">Something went wrong</h2>
+                <p className="text-muted-foreground mt-2">{error}</p>
+                <button onClick={() => window.location.reload()} className="mt-6 text-primary font-bold hover:underline">
+                    Try Again
+                </button>
+            </div>
+        );
+    }
+
+    const formatDate = (dateStr: any) => {
+        const d = new Date(dateStr);
+        return isValid(d) ? format(d, "MMM d, yyyy") : "Date unavailable";
+    };
 
     return (
         <div className="container mx-auto px-4 py-12">
@@ -72,11 +107,18 @@ export default function DonationHistoryPage() {
                                 {/* Left Side: Summary */}
                                 <div className="w-full lg:w-1/3">
                                     <div className="flex items-start gap-4 mb-6">
-                                        <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 border">
+                                        <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 border bg-muted/10">
                                             {request.listing?.images?.[0] ? (
-                                                <img src={request.listing.images[0].url} alt="Food" className="h-full w-full object-cover" />
+                                                <img
+                                                    src={request.listing.images[0].url}
+                                                    alt="Food"
+                                                    className="h-full w-full object-cover"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=No+Image';
+                                                    }}
+                                                />
                                             ) : (
-                                                <div className="h-full w-full bg-primary/5 flex items-center justify-center text-primary">
+                                                <div className="h-full w-full flex items-center justify-center text-primary">
                                                     <Package className="h-10 w-10" />
                                                 </div>
                                             )}
@@ -94,7 +136,7 @@ export default function DonationHistoryPage() {
                                                 {request.requestedQty} {request.listing?.unit || "portions"}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
-                                                Requested {format(new Date(request.createdAt), "MMM d, yyyy")}
+                                                Requested {formatDate(request.createdAt)}
                                             </p>
                                         </div>
                                     </div>
@@ -115,13 +157,13 @@ export default function DonationHistoryPage() {
                                                     <Phone className="h-4 w-4" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase text-muted-foreground">Phone</p>
+                                                    <p className="text-[10px) font-bold uppercase text-muted-foreground">Phone</p>
                                                     <p className="font-bold">{request.listing.donor.phone}</p>
                                                 </div>
                                             </div>
                                         )}
                                         <div className="flex font-bold text-xs pt-4 border-t">
-                                            <Link href={`/listings/${request.listingId}`} className="text-primary hover:underline flex items-center gap-1">
+                                            <Link href={`/listings/${request.listingId || '#'}`} className="text-primary hover:underline flex items-center gap-1">
                                                 View Listing Details <ArrowRight className="h-3 w-3" />
                                             </Link>
                                         </div>
@@ -179,10 +221,18 @@ export default function DonationHistoryPage() {
                                             {/* Live Tracking Map for active deliveries */}
                                             {(request.status === "ACCEPTED" || request.status === "PICKED_UP") && request.listing && (
                                                 <div className="mt-4 border-t pt-8">
-                                                    <p className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                                        <Navigation className="h-4 w-4 text-primary" />
-                                                        Volunteer Delivery Tracker
-                                                    </p>
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <p className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                                            <Navigation className="h-4 w-4 text-primary" />
+                                                            Volunteer Delivery Tracker
+                                                        </p>
+                                                        <Link
+                                                            href={`/donations/track/${request.id}`}
+                                                            className="text-xs font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
+                                                        >
+                                                            Full Screen Mode <ArrowRight className="h-3 w-3" />
+                                                        </Link>
+                                                    </div>
                                                     <VolunteerTracker
                                                         requestId={request.id}
                                                         donorLocation={[request.listing.latitude || 31.5204, request.listing.longitude || 74.3587]}

@@ -83,7 +83,7 @@ export default function ListingCard({ listing, className }: ListingCardProps) {
                     </div>
                     <div className="flex items-center text-sm text-gray-500">
                         <Clock className="mr-1.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>
+                        <span suppressHydrationWarning>
                             Expires in {formatDistanceToNow(new Date(listing.expiryTime))}
                         </span>
                     </div>

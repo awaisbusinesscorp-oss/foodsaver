@@ -2,15 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
-import { Utensils, Menu, X, Bell, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Utensils, Menu, X, Bell, User, LogOut } from "lucide-react";
 
 export default function Header() {
     const { data: session } = useSession();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const userRole = (session?.user as any)?.role;
 
@@ -38,7 +43,7 @@ export default function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex md:items-center md:space-x-6">
-                        {navigation.filter(i => i.show).map((item) => (
+                        {mounted && navigation.filter(i => i.show).map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
@@ -64,7 +69,7 @@ export default function Header() {
                             <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-destructive" />
                         </Link>
 
-                        {session ? (
+                        {mounted && session ? (
                             <div className="flex items-center gap-3">
                                 <Link
                                     href="/impact"
@@ -83,7 +88,7 @@ export default function Header() {
                                     <LogOut className="h-5 w-5" />
                                 </button>
                             </div>
-                        ) : (
+                        ) : mounted ? (
                             <Link
                                 href="/login"
                                 className="hidden md:flex items-center space-x-2 rounded-full border p-1 pr-3 hover:bg-accent transition-colors"
@@ -93,6 +98,8 @@ export default function Header() {
                                 </div>
                                 <span className="text-sm font-medium">Sign In</span>
                             </Link>
+                        ) : (
+                            <div className="h-10 w-24 bg-muted animate-pulse rounded-full hidden md:block" />
                         )}
 
                         {/* Mobile menu button */}
@@ -111,7 +118,7 @@ export default function Header() {
             </div>
 
             {/* Mobile Menu */}
-            {isMobileMenuOpen && (
+            {mounted && isMobileMenuOpen && (
                 <div className="border-b bg-background md:hidden">
                     <div className="space-y-1 px-4 pb-3 pt-2">
                         {navigation.filter(i => i.show).map((item) => (

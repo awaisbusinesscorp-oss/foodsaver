@@ -51,6 +51,26 @@ export async function GET(req: Request) {
                         name: true,
                         phone: true
                     }
+                },
+                request: {
+                    select: {
+                        listing: {
+                            select: {
+                                latitude: true,
+                                longitude: true,
+                                address: true,
+                                title: true
+                            }
+                        },
+                        receiver: {
+                            select: {
+                                latitude: true,
+                                longitude: true,
+                                address: true,
+                                name: true
+                            }
+                        }
+                    }
                 }
             }
         });
