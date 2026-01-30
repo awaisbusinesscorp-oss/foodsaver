@@ -10,6 +10,16 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
+        const userId = (session.user as any).id;
+        const userRole = (session.user as any).role;
+
+        // Only RECEIVER role can request donations
+        if (userRole !== "RECEIVER" && userRole !== "ADMIN") {
+            return NextResponse.json({
+                message: "Only receivers can request donations. Please register as a receiver."
+            }, { status: 403 });
+        }
+
         const { listingId, requestedQty, notes } = await req.json();
 
         if (!listingId || !requestedQty) {
@@ -29,12 +39,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Requested quantity exceeds availability" }, { status: 400 });
         }
 
+        // Can't request your own listing
+        if (listing.donorId === userId) {
+            return NextResponse.json({ message: "You cannot request your own donation" }, { status: 400 });
+        }
+
         const request = await prisma.donationRequest.create({
             data: {
                 listingId,
-                receiverId: (session.user as any).id,
-                requestedQty: parseInt(requestedQty.toString()),
-                notes,
+                receiverId: userId,
+                requestedQty: Number(requestedQty),
+                notes: notes || null,
                 status: "PENDING",
             },
             include: {
@@ -43,9 +58,13 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(request, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Donation request error:", error);
-        return NextResponse.json({ message: "Failed to submit request" }, { status: 500 });
+        return NextResponse.json({
+            message: error.message || "Failed to submit request",
+            stack: error.stack,
+            error: error
+        }, { status: 500 });
     }
 }
 

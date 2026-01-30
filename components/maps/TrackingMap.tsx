@@ -11,11 +11,18 @@ interface TrackingMapProps {
     receiverPos: [number, number];
 }
 
+// Helper to validate coordinates
+const isValidCoord = (coord: any): coord is [number, number] => {
+    return Array.isArray(coord) &&
+        coord.length === 2 &&
+        typeof coord[0] === 'number' && Number.isFinite(coord[0]) &&
+        typeof coord[1] === 'number' && Number.isFinite(coord[1]);
+};
+
 function MapUpdater({ volunteerPos }: { volunteerPos: [number, number] }) {
     const map = useMap();
     useEffect(() => {
-        // Just keep the volunteer in center if they move
-        if (volunteerPos) {
+        if (isValidCoord(volunteerPos) && map) {
             map.panTo(volunteerPos);
         }
     }, [volunteerPos, map]);
@@ -24,6 +31,11 @@ function MapUpdater({ volunteerPos }: { volunteerPos: [number, number] }) {
 
 export default function TrackingMap({ volunteerPos, donorPos, receiverPos }: TrackingMapProps) {
     if (typeof window === 'undefined') return null;
+
+    const defaultPos: [number, number] = [30.3753, 69.3451]; // Pakistan center
+    const safeVolunteer = isValidCoord(volunteerPos) ? volunteerPos : defaultPos;
+    const safeDonor = isValidCoord(donorPos) ? donorPos : defaultPos;
+    const safeReceiver = isValidCoord(receiverPos) ? receiverPos : defaultPos;
 
     // Custom icons
     const VolunteerIcon = L.icon({
@@ -46,7 +58,7 @@ export default function TrackingMap({ volunteerPos, donorPos, receiverPos }: Tra
 
     return (
         <MapContainer
-            center={volunteerPos}
+            center={safeVolunteer}
             zoom={14}
             scrollWheelZoom={true}
             className="h-full w-full"
@@ -56,32 +68,32 @@ export default function TrackingMap({ volunteerPos, donorPos, receiverPos }: Tra
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            <MapUpdater volunteerPos={volunteerPos} />
+            <MapUpdater volunteerPos={safeVolunteer} />
 
             {/* Donor Marker */}
-            <Marker position={donorPos} icon={DonorIcon}>
+            <Marker position={safeDonor} icon={DonorIcon}>
                 <Popup><b>Pickup Point</b></Popup>
             </Marker>
 
             {/* Receiver Marker */}
-            <Marker position={receiverPos} icon={ReceiverIcon}>
+            <Marker position={safeReceiver} icon={ReceiverIcon}>
                 <Popup><b>Drop-off Point</b></Popup>
             </Marker>
 
             {/* Volunteer Marker */}
-            <Marker position={volunteerPos} icon={VolunteerIcon}>
+            <Marker position={safeVolunteer} icon={VolunteerIcon}>
                 <Popup><b>Volunteer (You)</b></Popup>
             </Marker>
 
             {/* Route Lines */}
             <Polyline
-                positions={[donorPos, volunteerPos]}
+                positions={[safeDonor, safeVolunteer]}
                 color="green"
                 dashArray="5, 10"
                 weight={2}
             />
             <Polyline
-                positions={[volunteerPos, receiverPos]}
+                positions={[safeVolunteer, safeReceiver]}
                 color="blue"
                 dashArray="5, 10"
                 weight={2}

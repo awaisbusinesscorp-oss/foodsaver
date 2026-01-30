@@ -118,7 +118,14 @@ export default function AvailablePickupsPage() {
                                 </button>
                             </div>
                             <div className="w-full sm:w-48 aspect-square rounded-2xl overflow-hidden border">
-                                <MapBox listings={[pickup.listing]} center={[pickup.listing.latitude, pickup.listing.longitude]} />
+                                <MapBox
+                                    listings={[pickup.listing]}
+                                    center={
+                                        pickup.listing.latitude && pickup.listing.longitude
+                                            ? [pickup.listing.latitude, pickup.listing.longitude]
+                                            : null
+                                    }
+                                />
                             </div>
                         </div>
                     ))}

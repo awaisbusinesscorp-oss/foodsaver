@@ -9,7 +9,7 @@ export async function GET(req: Request) {
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
         const { searchParams } = new URL(req.url);
-        const mode = searchParams.get("mode"); // 'available' or 'active'
+        const mode = searchParams.get("mode"); // 'available', 'active', or 'history'
 
         if (mode === "available") {
             // Show both PENDING and ACCEPTED requests that don't have a volunteer yet
@@ -27,6 +27,23 @@ export async function GET(req: Request) {
                 orderBy: { createdAt: "desc" }
             });
             return NextResponse.json(available);
+        } else if (mode === "history") {
+            const history = await prisma.volunteerAssignment.findMany({
+                where: {
+                    volunteerId: (session.user as any).id,
+                    status: "DELIVERED"
+                },
+                include: {
+                    request: {
+                        include: {
+                            listing: { include: { images: true, donor: true } },
+                            receiver: true
+                        }
+                    }
+                },
+                orderBy: { updatedAt: "desc" }
+            });
+            return NextResponse.json(history);
         } else {
             const active = await prisma.volunteerAssignment.findMany({
                 where: {
@@ -40,7 +57,8 @@ export async function GET(req: Request) {
                             receiver: true
                         }
                     }
-                }
+                },
+                orderBy: { updatedAt: "desc" }
             });
             return NextResponse.json(active);
         }

@@ -180,7 +180,7 @@ export default function ListingDetailPage() {
                                     <h4 className="font-bold text-gray-900">{listing.donor.name}</h4>
                                     <div className="flex items-center gap-1 text-xs font-bold text-amber-500">
                                         <Star className="h-3 w-3 fill-amber-500" />
-                                        {listing.donor.rating.toFixed(1)} Donor Rating
+                                        {(listing.donor.rating || 0).toFixed(1)} Donor Rating
                                     </div>
                                 </div>
                             </div>
@@ -206,7 +206,14 @@ export default function ListingDetailPage() {
                             <div className="mt-8 border-t pt-6">
                                 <h4 className="font-bold text-sm mb-4">Location View</h4>
                                 <div className="aspect-square w-full rounded-2xl overflow-hidden border">
-                                    <MapBox listings={[listing]} center={[listing.latitude, listing.longitude]} />
+                                    <MapBox
+                                        listings={[listing]}
+                                        center={
+                                            listing.latitude && listing.longitude
+                                                ? [listing.latitude, listing.longitude]
+                                                : null
+                                        }
+                                    />
                                 </div>
                             </div>
                         </div>

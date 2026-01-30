@@ -47,7 +47,8 @@ export default function DonationRequestModal({
                 }, 2000);
             } else {
                 const data = await res.json();
-                setError(data.message || "Failed to submit request");
+                setError(data.message || data.error || "Failed to submit request");
+                console.error("Submission error details:", data);
             }
         } catch (err) {
             setError("An unexpected error occurred.");

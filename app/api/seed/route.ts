@@ -2,6 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as bcrypt from 'bcryptjs';
 
+// Free food images from Unsplash
+const FOOD_IMAGES: Record<string, string> = {
+    'Chicken Biryani': 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800',
+    'Beef Nihari': 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800',
+    'Karahi Gosht': 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d6?w=800',
+    'Haleem': 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800',
+    'Chicken Tikka': 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800',
+    'Fresh Chapati/Roti': 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800',
+    'Daal Chawal': 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=800',
+    'Pakoras and Samosas': 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800',
+    'Basmati Rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800',
+    'Flour (Atta)': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800',
+    'Fresh Vegetables': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800',
+    'Chicken (Fresh)': 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=800',
+    'Milk (Fresh)': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=800',
+    'Packaged Biscuits': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800',
+    'Tea Packages': 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=800',
+    'Cooking Oil': 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800',
+    'Soft Drinks': 'https://images.unsplash.com/photo-1527960471264-932f39eb5846?w=800',
+    'Fruit Juice': 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=800',
+    'Dates (Khajoor)': 'https://images.unsplash.com/photo-1591102972305-213abaa76d6f?w=800',
+    'Qeema Naan': 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800',
+};
+
 export async function POST(req: NextRequest) {
     try {
         console.log('🇵🇰 Starting Pakistani food seeding...');
@@ -23,6 +47,27 @@ export async function POST(req: NextRequest) {
                     latitude: 33.7215,
                     longitude: 73.0433,
                     rating: 4.8,
+                },
+            });
+        }
+
+        // Create a receiver user for testing
+        const receiverEmail = 'receiver.pk@foodsaver.com';
+        let receiver = await prisma.user.findUnique({ where: { email: receiverEmail } });
+
+        if (!receiver) {
+            const hashedPassword = await bcrypt.hash('password123', 10);
+            receiver = await prisma.user.create({
+                data: {
+                    email: receiverEmail,
+                    password: hashedPassword,
+                    name: 'Fatima Ali',
+                    role: 'RECEIVER',
+                    phone: '+92-321-9876543',
+                    address: 'DHA Phase 6, Karachi',
+                    latitude: 24.8138,
+                    longitude: 67.0630,
+                    rating: 4.5,
                 },
             });
         }
@@ -250,23 +295,35 @@ export async function POST(req: NextRequest) {
             },
         ];
 
+        // Delete existing listings from this donor to avoid duplicates
+        await prisma.foodListing.deleteMany({
+            where: { donorId: donor.id }
+        });
+
         for (const listing of pakistaniListings) {
+            const imageUrl = FOOD_IMAGES[listing.title];
+
             await prisma.foodListing.create({
                 data: {
                     ...listing,
                     foodType: listing.foodType as any,
                     donorId: donor.id,
                     status: 'AVAILABLE',
+                    images: imageUrl ? {
+                        create: [{ url: imageUrl }]
+                    } : undefined
                 },
             });
         }
 
         return NextResponse.json({
             success: true,
-            message: `✅ Successfully seeded ${pakistaniListings.length} Pakistani food listings!`,
+            message: `✅ Successfully seeded ${pakistaniListings.length} Pakistani food listings with images!`,
             locations: 'Karachi, Lahore, Islamabad, Rawalpindi, Faisalabad, Multan, Peshawar, Murree',
-            donorEmail: donorEmail,
-            donorPassword: 'password123'
+            testAccounts: {
+                donor: { email: donorEmail, password: 'password123' },
+                receiver: { email: receiverEmail, password: 'password123' }
+            }
         });
     } catch (error: any) {
         console.error('Seed error:', error);

@@ -27,24 +27,36 @@ function IconInitializer() {
     return null;
 }
 
+// Helper to validate coordinates
+const isValidCoord = (coord: any): coord is [number, number] => {
+    return Array.isArray(coord) &&
+        coord.length === 2 &&
+        typeof coord[0] === 'number' && Number.isFinite(coord[0]) &&
+        typeof coord[1] === 'number' && Number.isFinite(coord[1]);
+};
+
 function ZoomHandler({ center }: { center: [number, number] }) {
     const map = useMap();
     useEffect(() => {
-        if (center && map) {
+        if (isValidCoord(center) && map) {
             map.setView(center, map.getZoom());
         }
     }, [center, map]);
     return null;
 }
 
-export default function DynamicMap({ listings, center = [20.5937, 78.9629] }: DynamicMapProps) {
+export default function DynamicMap({ listings, center }: DynamicMapProps) {
     if (typeof window === 'undefined') return null;
+
+    // Fallback to India center if center is invalid
+    const defaultCenter: [number, number] = [30.3753, 69.3451]; // Pakistan center
+    const safeCenter = isValidCoord(center) ? center : defaultCenter;
 
     return (
         <div className="h-full w-full rounded-2xl overflow-hidden border shadow-inner bg-muted/20">
             <IconInitializer />
             <MapContainer
-                center={center}
+                center={safeCenter}
                 zoom={13}
                 scrollWheelZoom={true}
                 className="h-full w-full"
@@ -53,9 +65,16 @@ export default function DynamicMap({ listings, center = [20.5937, 78.9629] }: Dy
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <ZoomHandler center={center} />
-                {listings && Array.isArray(listings) && listings.map((listing) => (
-                    listing?.latitude && listing?.longitude && (
+                <ZoomHandler center={safeCenter} />
+                {listings && Array.isArray(listings) && listings
+                    .filter((listing) =>
+                        listing &&
+                        typeof listing.latitude === 'number' &&
+                        Number.isFinite(listing.latitude) &&
+                        typeof listing.longitude === 'number' &&
+                        Number.isFinite(listing.longitude)
+                    )
+                    .map((listing) => (
                         <Marker
                             key={listing.id}
                             position={[listing.latitude, listing.longitude]}
@@ -71,8 +90,7 @@ export default function DynamicMap({ listings, center = [20.5937, 78.9629] }: Dy
                                 </div>
                             </Popup>
                         </Marker>
-                    )
-                ))}
+                    ))}
             </MapContainer>
         </div>
     );
