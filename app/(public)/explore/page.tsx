@@ -17,17 +17,22 @@ export default function ExplorePage() {
         fetch("/api/listings")
             .then((res) => res.json())
             .then((data) => {
-                setListings(data);
+                setListings(Array.isArray(data) ? data : []);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                console.error("Failed to fetch listings:", error);
+                setListings([]);
                 setIsLoading(false);
             });
     }, []);
 
-    const filteredListings = listings.filter((l) => {
+    const filteredListings = Array.isArray(listings) ? listings.filter((l) => {
         const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase()) ||
             l.address.toLowerCase().includes(search.toLowerCase());
         const matchesType = filterType === "ALL" || l.foodType === filterType;
         return matchesSearch && matchesType;
-    });
+    }) : [];
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)]">
