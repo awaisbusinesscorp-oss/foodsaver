@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as bcrypt from 'bcryptjs';
 
+export const dynamic = 'force-dynamic';
+
 // Free food images from Unsplash
 const FOOD_IMAGES: Record<string, string> = {
     'Chicken Biryani': 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800',
