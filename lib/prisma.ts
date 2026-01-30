@@ -6,8 +6,15 @@ function createPrismaClient() {
     // Get the database URL - prioritize DATABASE_URL
     const databaseUrl = process.env.DATABASE_URL;
 
+    // During build time, DATABASE_URL might not be available
+    // Return a mock client to prevent build failures
     if (!databaseUrl) {
-        throw new Error("No database URL found. Set DATABASE_URL environment variable.");
+        if (process.env.NODE_ENV === "production") {
+            console.warn("DATABASE_URL not found during build. Using mock Prisma client.");
+        }
+        // Return a basic PrismaClient that will fail at runtime if actually used
+        // but won't break the build process
+        return new PrismaClient();
     }
 
     // Check if it's a Prisma Accelerate URL
