@@ -2,19 +2,37 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-function createPrismaClient() {
-    // Get the database URL - prioritize DATABASE_URL
+// Create a proxy that throws helpful errors only when actually called
+function createMockPrismaClient(): PrismaClient {
+    const handler: ProxyHandler<object> = {
+        get(_target, prop) {
+            // Return another proxy for method chaining (e.g., prisma.user.findMany)
+            if (typeof prop === 'string' && prop !== 'then' && prop !== 'catch') {
+                return new Proxy({}, {
+                    get() {
+                        return () => {
+                            throw new Error(
+                                `DATABASE_URL is not configured. This operation cannot be performed during build time.`
+                            );
+                        };
+                    },
+                });
+            }
+            return undefined;
+        },
+    };
+    return new Proxy({}, handler) as PrismaClient;
+}
+
+function createPrismaClient(): PrismaClient {
+    // Get the database URL
     const databaseUrl = process.env.DATABASE_URL;
 
     // During build time, DATABASE_URL might not be available
     // Return a mock client to prevent build failures
     if (!databaseUrl) {
-        if (process.env.NODE_ENV === "production") {
-            console.warn("DATABASE_URL not found during build. Using mock Prisma client.");
-        }
-        // Return a basic PrismaClient that will fail at runtime if actually used
-        // but won't break the build process
-        return new PrismaClient();
+        console.warn("DATABASE_URL not found. Using mock Prisma client for build.");
+        return createMockPrismaClient();
     }
 
     // Check if it's a Prisma Accelerate URL
