@@ -139,7 +139,7 @@ async function main() {
     });
 
     // ========== RECEIVERS ==========
-    const receiver1 = await prisma.user.upsert({
+    const _receiver1 = await prisma.user.upsert({
         where: { email: 'receiver@ngo.org' },
         update: {},
         create: {
@@ -156,7 +156,7 @@ async function main() {
     });
 
     // Lahore Receivers
-    const lahoreReceiver1 = await prisma.user.upsert({
+    const _lahoreReceiver1 = await prisma.user.upsert({
         where: { email: 'edhi.lahore@receiver.pk' },
         update: {},
         create: {
@@ -172,7 +172,7 @@ async function main() {
         },
     });
 
-    const lahoreReceiver2 = await prisma.user.upsert({
+    const _lahoreReceiver2 = await prisma.user.upsert({
         where: { email: 'saylani.lahore@receiver.pk' },
         update: {},
         create: {
@@ -188,7 +188,7 @@ async function main() {
         },
     });
 
-    const lahoreReceiver3 = await prisma.user.upsert({
+    const _lahoreReceiver3 = await prisma.user.upsert({
         where: { email: 'rizq.lahore@receiver.pk' },
         update: {},
         create: {
@@ -205,7 +205,7 @@ async function main() {
     });
 
     // ========== VOLUNTEERS/RIDERS ==========
-    const volunteer1 = await prisma.user.upsert({
+    const _volunteer1 = await prisma.user.upsert({
         where: { email: 'volunteer@helper.com' },
         update: {},
         create: {
@@ -219,7 +219,7 @@ async function main() {
     });
 
     // Lahore Volunteers/Riders
-    const lahoreVolunteer1 = await prisma.user.upsert({
+    const _lahoreVolunteer1 = await prisma.user.upsert({
         where: { email: 'ahmed.rider@volunteer.pk' },
         update: {},
         create: {
@@ -236,7 +236,7 @@ async function main() {
         },
     });
 
-    const lahoreVolunteer2 = await prisma.user.upsert({
+    const _lahoreVolunteer2 = await prisma.user.upsert({
         where: { email: 'ali.rider@volunteer.pk' },
         update: {},
         create: {
@@ -253,7 +253,7 @@ async function main() {
         },
     });
 
-    const lahoreVolunteer3 = await prisma.user.upsert({
+    const _lahoreVolunteer3 = await prisma.user.upsert({
         where: { email: 'usman.rider@volunteer.pk' },
         update: {},
         create: {
@@ -270,7 +270,7 @@ async function main() {
         },
     });
 
-    const lahoreVolunteer4 = await prisma.user.upsert({
+    const _lahoreVolunteer4 = await prisma.user.upsert({
         where: { email: 'bilal.rider@volunteer.pk' },
         update: {},
         create: {
@@ -287,7 +287,7 @@ async function main() {
         },
     });
 
-    const lahoreVolunteer5 = await prisma.user.upsert({
+    const _lahoreVolunteer5 = await prisma.user.upsert({
         where: { email: 'hamza.rider@volunteer.pk' },
         update: {},
         create: {
@@ -305,7 +305,7 @@ async function main() {
     });
 
     // ========== ADMIN ==========
-    const admin = await prisma.user.upsert({
+    const _admin = await prisma.user.upsert({
         where: { email: 'admin@foodsaver.org' },
         update: {},
         create: {

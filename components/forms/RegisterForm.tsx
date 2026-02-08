@@ -50,7 +50,7 @@ export default function RegisterForm({ role, roleTitle }: RegisterFormProps) {
                 const data = await res.json();
                 setError(data.message || "Registration failed");
             }
-        } catch (err) {
+        } catch (_err) {
             setError("Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);

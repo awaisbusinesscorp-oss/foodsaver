@@ -72,7 +72,7 @@ export default function CreateListingForm() {
             } else {
                 setError("Failed to upload image. Please try again.");
             }
-        } catch (err) {
+        } catch (_err) {
             setError("Failed to upload image. Please try again.");
         } finally {
             setIsUploading(false);
@@ -123,7 +123,7 @@ export default function CreateListingForm() {
                 const data = await res.json();
                 setError(data.message || "Failed to create listing");
             }
-        } catch (err) {
+        } catch (_err) {
             setError("An unexpected error occurred.");
         } finally {
             setIsLoading(false);
@@ -138,7 +138,7 @@ export default function CreateListingForm() {
                     Share Surplus Food
                 </h2>
                 <p className="text-muted-foreground text-sm">
-                    Detailed information helps receivers know what they're getting.
+                    Detailed information helps receivers know what they&apos;re getting.
                 </p>
             </div>
 

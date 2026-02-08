@@ -2,22 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
 import { Utensils, Menu, X, Bell, User, LogOut } from "lucide-react";
+
+// Extended user type for session with role
+interface SessionUser {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    id?: string;
+    role?: string;
+}
+
+// Hook to track if component is mounted (avoids setState in effect)
+const emptySubscribe = () => () => { };
+function useIsMounted() {
+    return useSyncExternalStore(
+        emptySubscribe,
+        () => true,
+        () => false
+    );
+}
 
 export default function Header() {
     const { data: session } = useSession();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [mounted, setMounted] = useState(false);
+    const mounted = useIsMounted();
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const userRole = (session?.user as any)?.role;
+    const userRole = (session?.user as SessionUser)?.role;
 
     const navigation = [
         { name: "Explore", href: "/explore", show: true },

@@ -12,7 +12,7 @@ interface TrackingMapProps {
 }
 
 // Helper to validate coordinates
-const isValidCoord = (coord: any): coord is [number, number] => {
+const isValidCoord = (coord: [number, number] | undefined | null): coord is [number, number] => {
     return Array.isArray(coord) &&
         coord.length === 2 &&
         typeof coord[0] === 'number' && Number.isFinite(coord[0]) &&

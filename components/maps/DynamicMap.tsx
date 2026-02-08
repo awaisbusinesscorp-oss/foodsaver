@@ -5,8 +5,18 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 
+interface FoodListing {
+    id: string;
+    title?: string;
+    description?: string;
+    quantity?: number;
+    unit?: string;
+    latitude: number;
+    longitude: number;
+}
+
 interface DynamicMapProps {
-    listings: any[];
+    listings: FoodListing[];
     center?: [number, number];
 }
 
@@ -28,7 +38,7 @@ function IconInitializer() {
 }
 
 // Helper to validate coordinates
-const isValidCoord = (coord: any): coord is [number, number] => {
+const isValidCoord = (coord: [number, number] | undefined | null): coord is [number, number] => {
     return Array.isArray(coord) &&
         coord.length === 2 &&
         typeof coord[0] === 'number' && Number.isFinite(coord[0]) &&

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star, X, Loader2, CheckCircle2 } from "lucide-react";
+import { Star, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RatingModalProps {

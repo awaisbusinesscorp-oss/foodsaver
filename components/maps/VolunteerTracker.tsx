@@ -26,8 +26,17 @@ interface VolunteerTrackerProps {
     receiverLocation: [number, number];
 }
 
+interface TrackingData {
+    currentLat: number;
+    currentLng: number;
+    volunteer: {
+        name: string;
+        phone?: string;
+    };
+}
+
 export default function VolunteerTracker({ requestId, donorLocation, receiverLocation }: VolunteerTrackerProps) {
-    const [trackingData, setTrackingData] = useState<any>(null);
+    const [trackingData, setTrackingData] = useState<TrackingData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {

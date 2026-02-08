@@ -12,13 +12,23 @@ const Map = dynamic(() => import("./DynamicMap"), {
     ),
 });
 
+interface FoodListing {
+    id: string;
+    title?: string;
+    description?: string;
+    quantity?: number;
+    unit?: string;
+    latitude: number;
+    longitude: number;
+}
+
 interface MapBoxProps {
-    listings: any[];
+    listings: FoodListing[];
     center?: [number, number] | null;
 }
 
 // Helper to validate coordinates
-const isValidCoordinate = (coord: any): coord is [number, number] => {
+const isValidCoordinate = (coord: [number, number] | null | undefined): coord is [number, number] => {
     return (
         Array.isArray(coord) &&
         coord.length === 2 &&

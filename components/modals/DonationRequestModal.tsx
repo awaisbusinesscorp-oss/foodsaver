@@ -50,7 +50,7 @@ export default function DonationRequestModal({
                 setError(data.message || data.error || "Failed to submit request");
                 console.error("Submission error details:", data);
             }
-        } catch (err) {
+        } catch (_err) {
             setError("An unexpected error occurred.");
         } finally {
             setIsLoading(false);

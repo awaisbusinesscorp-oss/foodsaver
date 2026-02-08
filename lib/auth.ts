@@ -2,6 +2,30 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { compare } from "bcryptjs";
+import { JWT } from "next-auth/jwt";
+
+// Extended user type with role
+interface UserWithRole {
+    id: string;
+    email: string | null;
+    name: string | null;
+    role: string;
+}
+
+// Extended JWT with role
+interface JWTWithRole extends JWT {
+    id?: string;
+    role?: string;
+}
+
+// Extended session user
+interface SessionUserWithRole {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    id?: string;
+    role?: string;
+}
 
 // Lazy import prisma to avoid build-time initialization issues
 const getPrisma = async () => {
@@ -59,15 +83,20 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.id = user.id;
-                token.role = (user as any).role;
+                const jwtToken = token as JWTWithRole;
+                const userWithRole = user as UserWithRole;
+                jwtToken.id = userWithRole.id;
+                jwtToken.role = userWithRole.role;
+                return jwtToken;
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                (session.user as any).id = token.id;
-                (session.user as any).role = token.role;
+                const jwtToken = token as JWTWithRole;
+                const sessionUser = session.user as SessionUserWithRole;
+                sessionUser.id = jwtToken.id;
+                sessionUser.role = jwtToken.role;
             }
             return session;
         },

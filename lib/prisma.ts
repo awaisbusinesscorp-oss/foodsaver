@@ -37,9 +37,9 @@ function createPrismaClient(): PrismaClient {
 
     // Check if it's a Prisma Accelerate URL
     if (databaseUrl.startsWith('prisma://') || databaseUrl.startsWith('prisma+postgres://')) {
-        return new PrismaClient({
-            accelerateUrl: databaseUrl,
-        } as any);
+        // Prisma Accelerate requires accelerateUrl which isn't in standard PrismaClient types
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new PrismaClient({ accelerateUrl: databaseUrl } as any);
     }
 
     // Direct connection (for local development or non-Accelerate)

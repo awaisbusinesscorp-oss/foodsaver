@@ -17,6 +17,7 @@ interface ListingCardProps {
         address: string;
         status: string;
         images?: { url: string }[];
+        uniqueId?: string;
     };
     className?: string;
 }
@@ -57,9 +58,9 @@ export default function ListingCard({ listing, className }: ListingCardProps) {
                             </span>
                         )}
                     </div>
-                    {(listing as any).uniqueId && (
+                    {listing.uniqueId && (
                         <span className="rounded-md bg-gray-900/80 px-2 py-1 text-[10px] font-black uppercase tracking-tighter text-white backdrop-blur-sm">
-                            {(listing as any).uniqueId}
+                            {listing.uniqueId}
                         </span>
                     )}
                 </div>
