@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
 
 export async function POST(req: Request) {
     try {
@@ -12,8 +24,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = (session.user as any).id;
-        const userRole = (session.user as any).role;
+        const user = session.user as SessionUser;
+        const userId = user.id;
+        const userRole = user.role;
 
         // Only RECEIVER role can request donations
         if (userRole !== "RECEIVER" && userRole !== "ADMIN") {
@@ -27,6 +40,8 @@ export async function POST(req: Request) {
         if (!listingId || !requestedQty) {
             return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
         }
+
+        const prisma = await getPrisma();
 
         // Check listing availability
         const listing = await prisma.foodListing.findUnique({
@@ -60,11 +75,13 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(request, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorStack = error instanceof Error ? error.stack : undefined;
         console.error("Donation request error:", error);
         return NextResponse.json({
-            message: error.message || "Failed to submit request",
-            stack: error.stack,
+            message: errorMessage || "Failed to submit request",
+            stack: errorStack,
             error: error
         }, { status: 500 });
     }
@@ -77,6 +94,9 @@ export async function GET(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
+
         const { searchParams } = new URL(req.url);
         const role = searchParams.get("role"); // 'donor' or 'receiver'
 
@@ -84,7 +104,7 @@ export async function GET(req: Request) {
             const requests = await prisma.donationRequest.findMany({
                 where: {
                     listing: {
-                        donorId: (session.user as any).id
+                        donorId: user.id
                     }
                 },
                 include: {
@@ -110,7 +130,7 @@ export async function GET(req: Request) {
         } else {
             const requests = await prisma.donationRequest.findMany({
                 where: {
-                    receiverId: (session.user as any).id
+                    receiverId: user.id
                 },
                 include: {
                     listing: {
@@ -144,6 +164,9 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
+
         const { requestId, status } = await req.json();
 
         if (!requestId || !status) {
@@ -160,7 +183,7 @@ export async function PATCH(req: Request) {
         }
 
         // Only donor can accept/decline
-        if (request.listing.donorId !== (session.user as any).id) {
+        if (request.listing.donorId !== user.id) {
             return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 

@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
 
 export async function POST(req: Request) {
     try {
@@ -11,6 +23,9 @@ export async function POST(req: Request) {
         if (!session?.user) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
+
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
 
         const body = await req.json();
         const {
@@ -33,8 +48,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
         }
 
-        const uniqueId = `FS-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-
         const listing = await prisma.foodListing.create({
             data: {
                 title,
@@ -48,7 +61,7 @@ export async function POST(req: Request) {
                 address,
                 latitude: latitude && latitude !== 0 ? parseFloat(latitude.toString()) : null,
                 longitude: longitude && longitude !== 0 ? parseFloat(longitude.toString()) : null,
-                donorId: (session.user as any).id,
+                donorId: user.id,
                 status: "AVAILABLE",
                 images: imageUrl ? {
                     create: [{ url: imageUrl }]
@@ -60,17 +73,19 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(listing, { status: 201 });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : undefined;
         console.error("Listing creation error:", error);
         return NextResponse.json({
             message: "Failed to create listing",
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: process.env.NODE_ENV === 'development' ? errorMessage : undefined
         }, { status: 500 });
     }
 }
 
 export async function GET(req: Request) {
     try {
+        const prisma = await getPrisma();
         const { searchParams } = new URL(req.url);
         const donorId = searchParams.get("donorId");
 

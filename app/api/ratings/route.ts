@@ -1,20 +1,39 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
+
+interface RatingRecord {
+    score: number;
+}
 
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
+
         const { targetId, rating, comment, requestId } = await req.json();
 
         const newRating = await prisma.rating.create({
             data: {
-                fromUserId: (session.user as any).id,
+                fromUserId: user.id,
                 toUserId: targetId,
                 score: parseInt(rating),
                 comment,
@@ -27,7 +46,7 @@ export async function POST(req: Request) {
             where: { toUserId: targetId }
         });
 
-        const avg = userRatings.reduce((acc: number, curr: any) => acc + curr.score, 0) / userRatings.length;
+        const avg = userRatings.reduce((acc: number, curr: RatingRecord) => acc + curr.score, 0) / userRatings.length;
 
         await prisma.user.update({
             where: { id: targetId },
@@ -35,7 +54,7 @@ export async function POST(req: Request) {
         });
 
         return NextResponse.json(newRating);
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ message: "Error" }, { status: 500 });
     }
 }

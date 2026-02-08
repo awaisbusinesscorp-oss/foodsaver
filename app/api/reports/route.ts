@@ -1,14 +1,29 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
 
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
 
         const { listingId, type, description, targetUserId } = await req.json();
 
@@ -18,7 +33,7 @@ export async function POST(req: Request) {
 
         const report = await prisma.report.create({
             data: {
-                reporterId: (session.user as any).id,
+                reporterId: user.id,
                 listingId: listingId || null,
                 targetUserId: targetUserId || null,
                 type,
@@ -33,14 +48,17 @@ export async function POST(req: Request) {
     }
 }
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+        const sessionUser = session.user as SessionUser;
+        const prisma = await getPrisma();
+
         // Only admins can view all reports
         const user = await prisma.user.findUnique({
-            where: { id: (session.user as any).id }
+            where: { id: sessionUser.id }
         });
 
         if (user?.role !== "ADMIN") {
@@ -63,7 +81,7 @@ export async function GET(req: Request) {
         });
 
         return NextResponse.json(reports);
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ message: "Failed to fetch reports" }, { status: 500 });
     }
 }

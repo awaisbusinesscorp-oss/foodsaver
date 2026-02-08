@@ -1,17 +1,32 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
 
 export async function PATCH(req: Request) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user || (session.user as any).role !== "VOLUNTEER") {
+        const user = session?.user as SessionUser | undefined;
+
+        if (!user || user.role !== "VOLUNTEER") {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
+        const prisma = await getPrisma();
         const { assignmentId, latitude, longitude } = await req.json();
 
         if (!assignmentId || latitude === undefined || longitude === undefined) {
@@ -19,7 +34,7 @@ export async function PATCH(req: Request) {
         }
 
         const assignment = await prisma.volunteerAssignment.update({
-            where: { id: assignmentId, volunteerId: (session.user as any).id },
+            where: { id: assignmentId, volunteerId: user.id },
             data: {
                 currentLat: parseFloat(latitude.toString()),
                 currentLng: parseFloat(longitude.toString()),
@@ -35,6 +50,7 @@ export async function PATCH(req: Request) {
 
 export async function GET(req: Request) {
     try {
+        const prisma = await getPrisma();
         const { searchParams } = new URL(req.url);
         const requestId = searchParams.get("requestId");
 

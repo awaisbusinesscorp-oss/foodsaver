@@ -1,9 +1,43 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
+
+interface DonationRequestWithListing {
+    requestedQty: number;
+    receiverId: string;
+    listing: {
+        unit: string;
+    };
+}
+
+interface AssignmentWithRequest {
+    request: {
+        requestedQty: number;
+        receiverId: string;
+        listing: {
+            unit: string;
+        };
+    };
+}
+
+interface RequestWithDate {
+    updatedAt: Date;
+}
 
 export async function GET() {
     try {
@@ -12,8 +46,10 @@ export async function GET() {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const userId = (session.user as any).id;
-        const role = (session.user as any).role;
+        const user = session.user as SessionUser;
+        const userId = user.id;
+        const role = user.role;
+        const prisma = await getPrisma();
 
         let meals = 0;
         let kg = 0;
@@ -29,16 +65,16 @@ export async function GET() {
                 include: { listing: true }
             });
 
-            meals = deliveredRequests.reduce((acc, req) => acc + req.requestedQty, 0);
+            meals = deliveredRequests.reduce((acc: number, req: DonationRequestWithListing) => acc + req.requestedQty, 0);
 
             // Calc KG (rough estimate: 1 portion ~ 0.5kg if not already in kg)
-            kg = deliveredRequests.reduce((acc, req) => {
+            kg = deliveredRequests.reduce((acc: number, req: DonationRequestWithListing) => {
                 const qty = req.requestedQty;
                 return acc + (req.listing.unit.toLowerCase() === "kg" ? qty : qty * 0.5);
             }, 0);
 
             // Unique people reached
-            const uniqueReceivers = new Set(deliveredRequests.map(r => r.receiverId));
+            const uniqueReceivers = new Set(deliveredRequests.map((r: DonationRequestWithListing) => r.receiverId));
             people = uniqueReceivers.size;
 
         } else if (role === "VOLUNTEER") {
@@ -53,13 +89,13 @@ export async function GET() {
                 }
             });
 
-            meals = assignments.reduce((acc, a) => acc + a.request.requestedQty, 0);
-            kg = assignments.reduce((acc, a) => {
+            meals = assignments.reduce((acc: number, a: AssignmentWithRequest) => acc + a.request.requestedQty, 0);
+            kg = assignments.reduce((acc: number, a: AssignmentWithRequest) => {
                 const qty = a.request.requestedQty;
                 return acc + (a.request.listing.unit.toLowerCase() === "kg" ? qty : qty * 0.5);
             }, 0);
 
-            const uniqueReceivers = new Set(assignments.map(a => a.request.receiverId));
+            const uniqueReceivers = new Set(assignments.map((a: AssignmentWithRequest) => a.request.receiverId));
             people = uniqueReceivers.size;
 
         } else if (role === "RECEIVER") {
@@ -72,8 +108,8 @@ export async function GET() {
                 include: { listing: true }
             });
 
-            meals = received.reduce((acc, r) => acc + r.requestedQty, 0);
-            kg = received.reduce((acc, r) => {
+            meals = received.reduce((acc: number, r: DonationRequestWithListing) => acc + r.requestedQty, 0);
+            kg = received.reduce((acc: number, r: DonationRequestWithListing) => {
                 const qty = r.requestedQty;
                 return acc + (r.listing.unit.toLowerCase() === "kg" ? qty : qty * 0.5);
             }, 0);
@@ -87,7 +123,7 @@ export async function GET() {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        let weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
+        const weeklyActivity = [0, 0, 0, 0, 0, 0, 0];
 
         const recentRequests = await prisma.donationRequest.findMany({
             where: {
@@ -98,7 +134,7 @@ export async function GET() {
             select: { updatedAt: true }
         });
 
-        recentRequests.forEach(req => {
+        recentRequests.forEach((req: RequestWithDate) => {
             const dayIndex = (new Date(req.updatedAt).getDay() + 6) % 7; // Map Sun-Sat to Mon-Sun
             weeklyActivity[dayIndex]++;
         });

@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
 
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
 export async function POST(req: Request) {
     try {
+        const prisma = await getPrisma();
         const body = await req.json();
         const { name, email, password, role, phone, address } = body;
 

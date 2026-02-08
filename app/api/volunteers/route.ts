@@ -1,14 +1,29 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import("@/lib/prisma");
+    return prisma;
+};
+
+interface SessionUser {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+}
 
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
 
         const { searchParams } = new URL(req.url);
         const mode = searchParams.get("mode"); // 'available', 'active', or 'history'
@@ -32,7 +47,7 @@ export async function GET(req: Request) {
         } else if (mode === "history") {
             const history = await prisma.volunteerAssignment.findMany({
                 where: {
-                    volunteerId: (session.user as any).id,
+                    volunteerId: user.id,
                     status: "DELIVERED"
                 },
                 include: {
@@ -49,7 +64,7 @@ export async function GET(req: Request) {
         } else {
             const active = await prisma.volunteerAssignment.findMany({
                 where: {
-                    volunteerId: (session.user as any).id,
+                    volunteerId: user.id,
                     status: { not: "DELIVERED" }
                 },
                 include: {
@@ -64,7 +79,7 @@ export async function GET(req: Request) {
             });
             return NextResponse.json(active);
         }
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ message: "Error" }, { status: 500 });
     }
 }
@@ -74,18 +89,21 @@ export async function POST(req: Request) {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+        const user = session.user as SessionUser;
+        const prisma = await getPrisma();
+
         const { requestId } = await req.json();
 
         const assignment = await prisma.volunteerAssignment.create({
             data: {
                 requestId,
-                volunteerId: (session.user as any).id,
+                volunteerId: user.id,
                 status: "ASSIGNED"
             }
         });
 
         return NextResponse.json(assignment);
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ message: "Error" }, { status: 500 });
     }
 }
@@ -94,6 +112,8 @@ export async function PATCH(req: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+        const prisma = await getPrisma();
 
         const { assignmentId, status } = await req.json();
 
@@ -110,11 +130,11 @@ export async function PATCH(req: Request) {
         // Update request status sync
         await prisma.donationRequest.update({
             where: { id: assignment.requestId },
-            data: { status: status as any }
+            data: { status: status as 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'PICKED_UP' | 'DELIVERED' | 'CANCELLED' }
         });
 
         return NextResponse.json(assignment);
-    } catch (error) {
+    } catch (_error) {
         return NextResponse.json({ message: "Error" }, { status: 500 });
     }
 }
