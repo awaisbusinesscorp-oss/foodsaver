@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import * as bcrypt from 'bcryptjs';
 
 export const dynamic = 'force-dynamic';
+
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import('@/lib/prisma');
+    return prisma;
+};
 
 // Free food images from Unsplash
 const FOOD_IMAGES: Record<string, string> = {
@@ -28,9 +33,11 @@ const FOOD_IMAGES: Record<string, string> = {
     'Qeema Naan': 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800',
 };
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
     try {
         console.log('🇵🇰 Starting Pakistani food seeding...');
+
+        const prisma = await getPrisma();
 
         // Create a donor user if not exists
         const donorEmail = 'donor.pk@foodsaver.com';
@@ -308,7 +315,7 @@ export async function POST(req: NextRequest) {
             await prisma.foodListing.create({
                 data: {
                     ...listing,
-                    foodType: listing.foodType as any,
+                    foodType: listing.foodType as 'COOKED' | 'RAW' | 'PACKAGED' | 'BEVERAGES',
                     donorId: donor.id,
                     status: 'AVAILABLE',
                     images: imageUrl ? {
@@ -327,8 +334,9 @@ export async function POST(req: NextRequest) {
                 receiver: { email: receiverEmail, password: 'password123' }
             }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('Seed error:', error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
     }
 }

@@ -1,19 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET(req: NextRequest) {
+// Lazy import prisma to avoid build-time initialization
+const getPrisma = async () => {
+    const { prisma } = await import('@/lib/prisma');
+    return prisma;
+};
+
+interface SessionUser {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    id?: string;
+    role?: string;
+}
+
+export async function GET(_req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session || (session.user as any).role !== 'ADMIN') {
+        if (!session || (session.user as SessionUser)?.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const prisma = await getPrisma();
         const users = await prisma.user.findMany({
             orderBy: { createdAt: 'desc' },
             take: 50,
@@ -28,8 +42,9 @@ export async function GET(req: NextRequest) {
         });
 
         return NextResponse.json(users);
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('Admin users error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 }
