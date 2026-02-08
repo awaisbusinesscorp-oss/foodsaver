@@ -53,10 +53,27 @@ export async function POST(req: Request) {
             { message: "User registered successfully", user: { id: user.id } },
             { status: 201 }
         );
-    } catch (error) {
+    } catch (error: unknown) {
         console.error("Registration error:", error);
+
+        // Provide more specific error messages
+        let message = "An error occurred during registration";
+
+        if (error instanceof Error) {
+            // Check for common Prisma/database errors
+            if (error.message.includes("DATABASE_URL")) {
+                message = "Database connection not configured";
+            } else if (error.message.includes("Connection")) {
+                message = "Unable to connect to database";
+            } else if (error.message.includes("Unique constraint")) {
+                message = "User with this email already exists";
+            } else if (process.env.NODE_ENV === 'development') {
+                message = error.message;
+            }
+        }
+
         return NextResponse.json(
-            { message: "An error occurred during registration" },
+            { message },
             { status: 500 }
         );
     }

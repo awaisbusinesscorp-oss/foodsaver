@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
@@ -24,7 +25,7 @@ function createMockPrismaClient(): PrismaClient {
     return new Proxy({}, handler) as PrismaClient;
 }
 
-function createPrismaClient(): PrismaClient {
+function createPrismaClient() {
     // Get the database URL
     const databaseUrl = process.env.DATABASE_URL;
 
@@ -37,9 +38,8 @@ function createPrismaClient(): PrismaClient {
 
     // Check if it's a Prisma Accelerate URL
     if (databaseUrl.startsWith('prisma://') || databaseUrl.startsWith('prisma+postgres://')) {
-        // Prisma Accelerate requires accelerateUrl which isn't in standard PrismaClient types
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return new PrismaClient({ accelerateUrl: databaseUrl } as any);
+        // Use Prisma Accelerate extension
+        return new PrismaClient().$extends(withAccelerate());
     }
 
     // Direct connection (for local development or non-Accelerate)
@@ -48,4 +48,7 @@ function createPrismaClient(): PrismaClient {
 
 export const prisma = globalForPrisma.prisma || createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") {
+    // Note: Extended client type is different, but we store base client for singleton
+    globalForPrisma.prisma = prisma as unknown as PrismaClient;
+}
