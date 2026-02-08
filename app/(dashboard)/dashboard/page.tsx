@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { SessionUser } from "@/lib/types";
 
 export default function DashboardPage() {
     const { data: session, status } = useSession();
@@ -17,7 +18,7 @@ export default function DashboardPage() {
             return;
         }
 
-        const role = (session.user as any)?.role;
+        const role = (session.user as SessionUser)?.role;
 
         // Redirect based on user role
         switch (role) {

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { format, isValid } from "date-fns";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { DonationRequest, SessionUser } from "@/lib/types";
 
 // Dynamically import VolunteerTracker to be extra safe
 const VolunteerTracker = dynamic(() => import("@/components/maps/VolunteerTracker"), {
@@ -23,7 +24,7 @@ const STATUS_TRACKER = [
 
 export default function DonationHistoryPage() {
     const { data: session } = useSession();
-    const [requests, setRequests] = useState<any[]>([]);
+    const [requests, setRequests] = useState<DonationRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -69,7 +70,7 @@ export default function DonationHistoryPage() {
         );
     }
 
-    const formatDate = (dateStr: any) => {
+    const formatDate = (dateStr: Date | string) => {
         const d = new Date(dateStr);
         return isValid(d) ? format(d, "MMM d, yyyy") : "Date unavailable";
     };
@@ -237,8 +238,8 @@ export default function DonationHistoryPage() {
                                                         requestId={request.id}
                                                         donorLocation={[request.listing.latitude || 31.5204, request.listing.longitude || 74.3587]}
                                                         receiverLocation={[
-                                                            (session?.user as any)?.latitude || 31.5312,
-                                                            (session?.user as any)?.longitude || 74.3154
+                                                            (session?.user as SessionUser)?.latitude || 31.5312,
+                                                            (session?.user as SessionUser)?.longitude || 74.3154
                                                         ]}
                                                     />
                                                 </div>

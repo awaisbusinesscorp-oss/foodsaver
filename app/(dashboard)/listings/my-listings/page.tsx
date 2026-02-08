@@ -5,15 +5,16 @@ import { useSession } from "next-auth/react";
 import ListingCard from "@/components/cards/ListingCard";
 import { Plus, Loader2, Utensils } from "lucide-react";
 import Link from "next/link";
+import { FoodListing, SessionUser } from "@/lib/types";
 
 export default function MyListingsPage() {
     const { data: session } = useSession();
-    const [listings, setListings] = useState<any[]>([]);
+    const [listings, setListings] = useState<FoodListing[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (session?.user) {
-            fetch(`/api/listings?donorId=${(session.user as any).id}`)
+            fetch(`/api/listings?donorId=${(session.user as SessionUser).id}`)
                 .then((res) => res.json())
                 .then((data) => {
                     setListings(Array.isArray(data) ? data : []);

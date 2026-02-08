@@ -9,11 +9,11 @@ interface ListingCardProps {
     listing: {
         id: string;
         title: string;
-        description: string | null;
+        description?: string | null;
         foodType: string;
         quantity: number;
         unit: string;
-        expiryTime: Date;
+        expiryTime: Date | string;
         address: string;
         status: string;
         images?: { url: string }[];

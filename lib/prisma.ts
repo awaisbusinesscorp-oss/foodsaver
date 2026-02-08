@@ -1,54 +1,73 @@
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const globalForPrisma = global as unknown as { prisma: any };
 
-// Create a proxy that throws helpful errors only when actually called
-function createMockPrismaClient(): PrismaClient {
-    const handler: ProxyHandler<object> = {
+// Get the database URL with fallbacks
+function getDatabaseUrl(): string | undefined {
+    return process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL;
+}
+
+// Check if URL is Prisma Accelerate
+function isAccelerateUrl(url: string): boolean {
+    return url.startsWith('prisma://') || url.startsWith('prisma+postgres://');
+}
+
+// Create a proxy that throws helpful errors only when actually called (for build time)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createMockPrismaClient(): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler: ProxyHandler<any> = {
         get(_target, prop) {
-            // Return another proxy for method chaining (e.g., prisma.user.findMany)
-            if (typeof prop === 'string' && prop !== 'then' && prop !== 'catch') {
+            if (typeof prop === 'string' && prop !== 'then' && prop !== 'catch' && prop !== '$connect' && prop !== '$disconnect') {
                 return new Proxy({}, {
                     get() {
                         return () => {
                             throw new Error(
-                                `DATABASE_URL is not configured. This operation cannot be performed during build time.`
+                                `DATABASE_URL is not configured. Please set DATABASE_URL environment variable.`
                             );
                         };
                     },
                 });
             }
+            if (prop === '$connect' || prop === '$disconnect') {
+                return () => Promise.resolve();
+            }
             return undefined;
         },
     };
-    return new Proxy({}, handler) as PrismaClient;
+    return new Proxy({}, handler);
 }
 
-function createPrismaClient() {
-    // Get the database URL
-    const databaseUrl = process.env.DATABASE_URL;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function createPrismaClient(): any {
+    const databaseUrl = getDatabaseUrl();
 
     // During build time, DATABASE_URL might not be available
-    // Return a mock client to prevent build failures
     if (!databaseUrl) {
-        console.warn("DATABASE_URL not found. Using mock Prisma client for build.");
+        console.warn("⚠️ DATABASE_URL not found. Using mock Prisma client.");
         return createMockPrismaClient();
     }
 
-    // Check if it's a Prisma Accelerate URL
-    if (databaseUrl.startsWith('prisma://') || databaseUrl.startsWith('prisma+postgres://')) {
-        // Use Prisma Accelerate extension
-        return new PrismaClient().$extends(withAccelerate());
-    }
+    try {
+        // Check if it's a Prisma Accelerate URL
+        if (isAccelerateUrl(databaseUrl)) {
+            console.log("🚀 Using Prisma Accelerate");
+            return new PrismaClient().$extends(withAccelerate());
+        }
 
-    // Direct connection (for local development or non-Accelerate)
-    return new PrismaClient();
+        // Direct connection
+        console.log("📡 Using direct database connection");
+        return new PrismaClient();
+    } catch (error) {
+        console.error("Failed to create Prisma client:", error);
+        return createMockPrismaClient();
+    }
 }
 
-export const prisma = globalForPrisma.prisma || createPrismaClient();
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-    // Note: Extended client type is different, but we store base client for singleton
-    globalForPrisma.prisma = prisma as unknown as PrismaClient;
+    globalForPrisma.prisma = prisma;
 }
